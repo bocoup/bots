@@ -51,6 +51,9 @@ apt_packages:
 # site_path should be children of this directory.
 base_path: /mnt
 
+# Where the production code symlink will exist.
+site_path: "{{base_path}}/site"
+
 # Temporary location where the Git repo will be cloned and the build scripts
 # will be run before going live.
 clone_path: "{{base_path}}/temp"
@@ -89,4 +92,4 @@ secret_server: nest.bocoup.com
 secret_path: /mnt/secrets
 secret_files:
   - src: bots.json
-    dest: /mnt/
+    dest: /mnt/bots.json
