@@ -28,6 +28,9 @@ Here is example of a naïve command, `megaphone`:
 ```js
 exports.usage = 'Repeat what you said, but louder.\n`Usage: megaphone [message]`';
 exports.handler = function (user, message) {
+  if (!message) {
+    throw new Error('No message specified.');
+  }
   return user.name+' said: *'+message.toUpperCase()+'*';
 };
 ```

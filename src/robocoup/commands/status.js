@@ -11,8 +11,8 @@ exports.usage = 'Show the status of a Bocouper today:\n`Usage: status [slackname
 exports.handler = handler;
 
 function handler (user, slackname) {
-  if (slackname === "") {
-    return HELP;
+  if (!slackname) {
+    throw new Error('No Bocouper specified.');
   }
   const normalizedName = slackname.replace(/@/g,'');
   const today = moment().format('YYYY-MM-DD');

@@ -18,7 +18,7 @@ exports.handler = handler;
 
 function handler (user, timeframe) {
   if (!timeframe) {
-    return exports.usage;
+    throw new Error('No timeframe specified.');
   }
   const day = moment();
   const dayQuery = day.format('YYYY-MM-DD');
