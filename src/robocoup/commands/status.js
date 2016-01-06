@@ -36,7 +36,7 @@ function reply (api) {
     'type',
     'leaveRequestType'
   ].reduce(function (result, relation) {
-    const rel = utilization.relationships[relation];
+    const rel = utilization.relationships[relation].data;
     result[relation] = (rel && rel.attributes && rel.attributes.name) || 'n/a';
     return result;
   }, {})
