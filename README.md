@@ -18,7 +18,7 @@ option automatically for the `help` command.
 
 A valid command must export a `handler` and `usage` property. The `handler` must
 return a string, or a promise which resolves to a string. The result will be
-sent to the user. Throwing an error will prefix the message with `Error:`.
+sent to the user.
 
 The `usage` property is a string that explains how to use the command. This will
 be shown automatically in response to `help command`.
@@ -29,7 +29,7 @@ Here is example of a naïve command, `megaphone`:
 exports.usage = 'Repeat what you said, but louder.\n`Usage: megaphone [message]`';
 exports.handler = function (user, message) {
   if (!message) {
-    throw new Error('No message specified.');
+    return 'Error: No message specified.';
   }
   return user.name+' said: *'+message.toUpperCase()+'*';
 };
