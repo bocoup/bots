@@ -10,7 +10,7 @@ exports.handler = function (user, message) {
           }).join(' | ');
         }).join('\n')
       });
-    case 'test':
+    case 'list':
       return expertise.getExpertiseById(1).then(function (results) {
         const data = results.rows[0];
         const title = Object.keys(data).map(function (field) {
