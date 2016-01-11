@@ -1,4 +1,7 @@
-node_modules
-bots.json
-npm-debug.log
+/node_modules
+/build
+
 TOKEN_*
+bots.json
+
+npm-debug.log*
