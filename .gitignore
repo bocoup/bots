@@ -1,3 +1,4 @@
 node_modules
 bots.json
 npm-debug.log
+TOKEN_*
