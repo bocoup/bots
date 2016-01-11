@@ -9,18 +9,7 @@ const key = require('../lib/token').get(config, 'robocoup');
 const Bot = new Slack(key, true, true);
 
 Bot.on('open', function() {
-  const channels = Object.keys(this.channels)
-    .map(function (k) { return this.channels[k]; }.bind(this))
-    .filter(function (c) { return c.is_member; })
-    .map(function (c) { return c.name; });
-
-  const groups = Object.keys(this.groups)
-    .map(function (k) { return this.groups[k]; })
-    .filter(function (g) { return g.is_open && !g.is_archived; })
-    .map(function (g) { return g.name; });
-
-  const listening = channels.concat(groups);
-  console.log(this.self.name+' is listening '+(listening.length ? 'in '+listening.join(', ') : ''));
+  console.log('Connected to %s as @%s', this.team.name, this.self.name);
 });
 
 Bot.on('message', function(message) {
