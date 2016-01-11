@@ -2,13 +2,13 @@ const bPromise = require('bluebird');
 const Slack = require('slack-client');
 
 const config = require('../../config')
-const key = config.creds.slack.robocoup[config.env];
 const slack = require('../lib/slack');
 const commands = require('./commands');
+const key = require('../lib/token').get(config, 'robocoup');
 
 const Bot = new Slack(key, true, true);
 
-Bot.on('open', function () {
+Bot.on('open', function() {
   const channels = Object.keys(this.channels)
     .map(function (k) { return this.channels[k]; }.bind(this))
     .filter(function (c) { return c.is_member; })
