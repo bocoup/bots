@@ -1,3 +1,5 @@
+'use strict';
+
 var spawn = require('child_process').spawn;
 
 module.exports = function(grunt) {
@@ -14,7 +16,27 @@ module.exports = function(grunt) {
         expand: true,
         cwd: 'src',
         dest: 'build',
-      }
+      },
+    },
+    eslint: {
+      src: {
+        options: {
+          configFile: '.eslintrc-es2015.yaml',
+        },
+        // src: 'src/**/*.js',
+        src: [
+          'src/index.js',
+          'src/lib/slack.js',
+          'src/lib/token.js',
+          'src/robocoup/index.js',
+        ],
+      },
+      root: {
+        options: {
+          configFile: '.eslintrc-node.yaml',
+        },
+        src: '*.js',
+      },
     },
     clean: {
       build: 'build',
@@ -23,26 +45,39 @@ module.exports = function(grunt) {
       options: {
         spawn: false,
       },
-      babel: {
+      src: {
+        // files: ['<%= eslint.src.src %>'],
         files: ['src/**/*.js'],
-        tasks: ['build', 'kill', 'start'],
-      }
-    }
+        tasks: ['eslint:src', 'build', 'kill', 'start'],
+      },
+      root: {
+        files: ['<%= eslint.root.src %>'],
+        tasks: ['eslint:root'],
+      },
+      lint: {
+        options: {
+          reload: true,
+        },
+        files: ['.eslintrc*', 'eslint/*'],
+        tasks: ['eslint'],
+      },
+    },
   });
 
-  var proc;
   grunt.registerTask('start', function() {
-    proc = spawn('node', ['build/index'], {stdio: 'inherit'});
+    global._BOT = spawn('node', ['build/index'], {stdio: 'inherit'});
   });
 
   grunt.registerTask('kill', function() {
-    proc.kill('SIGKILL');
+    global._BOT.kill('SIGKILL');
   });
 
+  grunt.registerTask('test', ['eslint']);
   grunt.registerTask('build', ['clean', 'babel']);
   grunt.registerTask('default', ['build', 'start', 'watch']);
 
   grunt.loadNpmTasks('grunt-babel');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-eslint');
 };

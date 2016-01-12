@@ -1,3 +1,5 @@
+'use strict';
+
 const isProduction = process.env.NODE_ENV === 'production';
 
 module.exports = {
@@ -7,6 +9,6 @@ module.exports = {
   db: {
     host: isProduction ? '172.31.37.51' : 'db.loc',
     database: 'bocoup',
-    user: 'postgres'
-  }
+    user: 'postgres',
+  },
 };

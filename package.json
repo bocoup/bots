@@ -24,6 +24,7 @@
     "start": "node build/index"
   },
   "devDependencies": {
-    "grunt-contrib-watch": "^0.6.1"
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-eslint": "^17.3.1"
   }
 }
