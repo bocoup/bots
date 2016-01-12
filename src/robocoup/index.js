@@ -1,35 +1,53 @@
-const bPromise = require('bluebird');
-const Slack = require('slack-client');
+import Promise from 'bluebird';
+import Slack from 'slack-client';
 
-const config = require('../../config')
-const slack = require('../lib/slack');
-const commands = require('./commands');
-const key = require('../lib/token').get(config, 'robocoup');
+import config from '../../config';
+import {deparse} from '../lib/slack';
+import commands from './commands';
 
-const Bot = new Slack(key, true, true);
+import {get as getToken} from '../lib/token';
+const key = getToken(config, 'robocoup');
 
-Bot.on('open', function() {
-  console.log('Connected to %s as @%s', this.team.name, this.self.name);
+const bot = new Slack(key, true, true);
+
+bot.on('open', function() {
+  console.log(`Connected to ${this.team.name} as @${this.self.name}`);
 });
 
-Bot.on('message', function(message) {
+bot.on('message', function(message) {
   const channel = this.getChannelGroupOrDMByID(message.channel);
-  const user = this.getUserByID(message.user);
-  const subtype = message.subtype || 'normal';
-  if (message.type === 'message' && !message.subtype && channel.is_im) {
-    const input = slack.deparse.call(this, message.text).split(' ');
-    const command = input[0];
-    const action = input.slice(1).join(' ');
-    const handler = commands[command] && commands[command].handler;
-    if (handler) {
-      bPromise.resolve(handler(user, action === '' ? null : action))
-        .then(channel.send.bind(channel), function (error) {
-          channel.send('Error: '+error.message);
-        });
-    } else {
-      channel.send('Unknown command `'+command+'`.');
-    }
+  // Ignore non-im messages or non-message messages.
+  if (!channel.is_im || message.type !== 'message') {
+    return;
   }
+  // If the message was a "changed" message, get the underlying message.
+  if (message.subtype === 'message_changed') {
+    message = message.message;
+  }
+  // Any message with a subtype can be safely ignored.
+  if (message.subtype) {
+    return;
+  }
+  // Parse command and args out of message.
+  const args = deparse(this, message.text).split(' ');
+  const command = args.shift();
+  const action = args.length > 0 ? args.join(' ') : null;
+  // Is there a handler registered for this command?
+  const handler = commands[command] && commands[command].handler;
+  if (!handler) {
+    channel.send(`Unknown command \`${command}\`.`);
+    return;
+  }
+  // Run the command!
+  Promise
+    .try(() => {
+      const user = this.getUserByID(message.user);
+      return handler(user, action);
+    })
+    .then(channel.send.bind(channel))
+    .catch(error => {
+      channel.send(`An unexpected error occurred: \`${error.message}\``);
+    });
 });
 
-module.exports = Bot;
+export default bot;
