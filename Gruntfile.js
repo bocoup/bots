@@ -41,13 +41,21 @@ module.exports = function(grunt) {
     clean: {
       build: 'build',
     },
+    copy: {
+      build: {
+        expand: true,
+        cwd: 'src',
+        src: ['db/**/*'],
+        dest: 'build',
+      },
+    },
     watch: {
       options: {
         spawn: false,
       },
       src: {
         // files: ['<%= eslint.src.src %>'],
-        files: ['src/**/*.js'],
+        files: ['src/**/*'],
         tasks: ['eslint:src', 'build', 'kill', 'start'],
       },
       root: {
@@ -73,11 +81,12 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('test', ['eslint']);
-  grunt.registerTask('build', ['clean', 'babel']);
+  grunt.registerTask('build', ['clean', 'babel', 'copy']);
   grunt.registerTask('default', ['build', 'start', 'watch']);
 
   grunt.loadNpmTasks('grunt-babel');
   grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-eslint');
 };
