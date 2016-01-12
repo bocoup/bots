@@ -4,7 +4,6 @@
 
 # Modify as-needed!
 
-
 - name: compare package.json of current deploy with previous deploy
   command: diff {{site_path}}/package.json {{clone_path}}/package.json
   register: package_diff

@@ -56,3 +56,6 @@
 
 - include: secrets.yml
   when: env != "development"
+
+- include: swap.yml
+  when: swap_file_path is defined and swap_file_size is defined
