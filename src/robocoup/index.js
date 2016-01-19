@@ -1,5 +1,6 @@
 import Promise from 'bluebird';
 import Slack from 'slack-client';
+import R from 'ramda';
 
 import config from '../../config';
 import {deparse} from '../lib/slack';
@@ -31,7 +32,6 @@ bot.on('message', function(message) {
   // Parse command and args out of message.
   const args = deparse(this, message.text).split(' ');
   const command = args.shift();
-  const action = args.length > 0 ? args.join(' ') : null;
   // Is there a handler registered for this command?
   const handler = commands[command] && commands[command].handler;
   if (!handler) {
@@ -42,11 +42,17 @@ bot.on('message', function(message) {
   Promise
     .try(() => {
       const user = this.getUserByID(message.user);
-      return handler(user, action);
+      return handler({command, user}, ...args);
     })
-    .then(channel.send.bind(channel))
+    .then(result => {
+      if (Array.isArray(result)) {
+        result = R.flatten(result).join('\n');
+      }
+      channel.send(result);
+    })
     .catch(error => {
       channel.send(`An unexpected error occurred: \`${error.message}\``);
+      console.error(error.stack);
     });
 });
 

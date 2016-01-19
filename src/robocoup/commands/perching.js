@@ -23,7 +23,7 @@ const getBocouper = R.map(function (entry) {
 exports.usage = 'Show who is on perch:\n`Usage: perching`';
 exports.handler = handler;
 
-function handler (user, timeframe) {
+function handler (meta, timeframe) {
   const day = moment();
   const dayQuery = day.format('YYYY-MM-DD');
   const dayPretty = day.format('MMMM Do, YYYY');

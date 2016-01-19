@@ -1,5 +1,6 @@
 exports.usage = 'Show your expertise.\n`Usage: expertise [me, list]`';
-exports.handler = function (user, message) {
+exports.handler = function (meta, message) {
+  const user = meta.user;
   const expertise = require('../../lib/expertise');
   switch (message) {
     case 'me':

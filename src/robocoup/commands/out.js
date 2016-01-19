@@ -16,7 +16,7 @@ const getBocouper = R.map(function (entry) {
 exports.usage = 'Show who is out:\n`Usage: out [today]`';
 exports.handler = handler;
 
-function handler (user, timeframe) {
+function handler (meta, timeframe) {
   if (!timeframe) {
     return 'No timeframe specified.';
   }
