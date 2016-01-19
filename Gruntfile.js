@@ -32,6 +32,7 @@ module.exports = function(grunt) {
           'src/lib/token.js',
           'src/robocoup/index.js',
           'src/robocoup/commands/expertise.js',
+          'src/robocoup/commands/help.js',
         ],
       },
       root: {
