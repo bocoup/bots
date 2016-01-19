@@ -220,7 +220,8 @@ rules:
   padded-blocks: 0
   quote-props:
     - 2
-    - consistent
+    - as-needed
+    - {keywords: false}
   quotes:
     - 2
     - single
