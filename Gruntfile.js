@@ -8,7 +8,6 @@ module.exports = function(grunt) {
     babel: {
       options: {
         sourceMap: 'inline',
-        presets: ['es2015'],
         plugins: ['transform-runtime'],
       },
       build: {
@@ -41,6 +40,12 @@ module.exports = function(grunt) {
         },
         src: '*.js',
       },
+      test: {
+        options: {
+          configFile: '.eslintrc-mocha.yaml',
+        },
+        src: 'test/**/*.js',
+      },
     },
     clean: {
       build: 'build',
@@ -53,6 +58,20 @@ module.exports = function(grunt) {
         dest: 'build',
       },
     },
+    mochaTest: {
+      unit: {
+        options: {
+          reporter: 'spec',
+          quiet: false,
+          clearRequireCache: true,
+          require: [
+            'babel-register',
+            'test/globals',
+          ],
+        },
+        src: 'test/lib/*.js',
+      },
+    },
     watch: {
       options: {
         spawn: false,
@@ -60,11 +79,15 @@ module.exports = function(grunt) {
       src: {
         // files: ['<%= eslint.src.src %>'],
         files: ['src/**/*'],
-        tasks: ['eslint:src', 'build', 'kill', 'start'],
+        tasks: ['eslint:src', 'mochaTest', 'build', 'kill', 'start'],
       },
       root: {
         files: ['<%= eslint.root.src %>'],
         tasks: ['eslint:root'],
+      },
+      test: {
+        files: ['<%= eslint.test.src %>'],
+        tasks: ['eslint:test', 'mochaTest'],
       },
       lint: {
         options: {
@@ -84,13 +107,14 @@ module.exports = function(grunt) {
     global._BOT.kill('SIGKILL');
   });
 
-  grunt.registerTask('test', ['eslint']);
+  grunt.registerTask('test', ['eslint', 'mochaTest']);
   grunt.registerTask('build', ['clean', 'babel', 'copy']);
   grunt.registerTask('default', ['build', 'start', 'watch']);
 
   grunt.loadNpmTasks('grunt-babel');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-eslint');
 };
