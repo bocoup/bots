@@ -10,7 +10,7 @@ const bocoup = require('../../lib/bocoup');
 exports.usage = 'Show the status of a Bocouper today:\n`Usage: status [slackname]`';
 exports.handler = handler;
 
-function handler (user, slackname) {
+function handler (meta, slackname) {
   console.log(slackname);
   if (!slackname) {
     return 'No Bocouper specified.';
