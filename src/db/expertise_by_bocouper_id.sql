@@ -6,14 +6,12 @@ WITH latest_expertise_log AS (
   GROUP BY employee_id, expertise_id
 )
 SELECT
-  e.first AS "First Name",
-  e.last AS "Last Name",
-  exp.name AS "Expertise",
-  et.name AS "Type",
-  ea.name AS "Area",
-  ee.interest_rating AS "Interest",
-  ee.experience_rating AS "Experience",
-  ee.created_at AS "Last Updated"
+  exp.id AS id,
+  exp.name AS expertise,
+  ee.interest_rating AS interest,
+  ee.experience_rating AS experience,
+  et.name AS type,
+  ea.name AS area
 FROM latest_expertise_log lel
 INNER JOIN employee_expertise ee ON
   ee.employee_id=lel.employee_id AND
@@ -23,4 +21,4 @@ INNER JOIN employee e ON e.id=ee.employee_id
 INNER JOIN expertise exp ON exp.id=ee.expertise_id
 INNER JOIN expertise_area ea ON ea.id=exp.expertise_area_id
 INNER JOIN expertise_type et ON et.id=exp.expertise_type_id
-ORDER BY e.last, e.first, et.name, exp.name, ea.name
+WHERE exp.id=?

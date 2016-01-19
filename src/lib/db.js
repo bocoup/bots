@@ -1,28 +1,29 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import knex from 'knex';
 
-const knex = require('knex');
-const config = require('../../config');
+import config from '../../config';
 
-const DB = exports.DB = knex({
+export const DB = knex({
   client: 'pg',
-  connection: config.db
+  connection: config.db,
 });
 
 function loadQueries(sqlDir) {
-  return fs.readdirSync(sqlDir).reduce(function (queries, filename) {
-    const pathDetails = path.parse(filename);
-    if (pathDetails.ext === '.sql') {
-      queries[pathDetails.name] = function () {
-        const sql = fs.readFileSync(path.join(sqlDir, filename), {
-          encoding: 'utf-8'
-        });
-        return DB.raw(sql, Array.prototype.slice.call(arguments));
+  return fs.readdirSync(sqlDir).reduce((queries, filename) => {
+    const {ext, name} = path.parse(filename);
+    if (ext === '.sql') {
+      queries[name] = (...args) => {
+        const sql = fs.readFileSync(path.join(sqlDir, filename), 'utf8');
+        return DB.raw(sql, args);
       };
     }
     return queries;
   }, {});
 }
 
-exports.DB = DB;
-exports.queries = loadQueries(path.join(__dirname, '..', 'db'));
+export const queries = loadQueries(path.join(__dirname, '..', 'db'));
+
+export function query(name, ...args) {
+  return queries[name](...args).then(result => result.rows);
+}
