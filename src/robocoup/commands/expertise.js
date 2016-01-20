@@ -69,11 +69,14 @@ function abort(...args) {
   return error;
 }
 
+// Get user name sans leading sigil.
+const getName = (name = '') => name.replace(/^@/, '');
+
 // Data-formatting helper.
 function formatByInterestAndExperience(rows, fn) {
   return rows.map(row => {
     const [interest, experience] = row.interest_experience;
-    return `*Interest=${interest}, Experience=${experience}:* ${fn(row)}`;
+    return `> *Interest=${interest}, Experience=${experience}:* ${fn(row)}`;
   });
 }
 
@@ -145,18 +148,26 @@ addCommand('for', {
     else if (name === 'me') {
       name = this.user.name;
     }
-    name = name.replace(/^@/, '');
+    name = getName(name);
     const me = name === this.user.name;
-    return query('expertise_interest_experience_by_bocouper', name).then(rows => {
-      if (rows.length === 0) {
-        return `_No matches found. Please try again._`;
+    const output = [];
+    return Promise.props({
+      expertise: query('expertise_interest_experience_by_bocouper', name),
+      outstanding: query('expertise_outstanding_by_bocouper', name),
+    }).then(({expertise, outstanding: [{outstanding}]}) => {
+      output.push(`Listing all expertise for *@${name}*:`);
+      if (!me && outstanding) {
+        output.push(`> *No data for:* ${outstanding}`);
       }
-      const header = `Listing all expertise for *@${name}*:`;
-      const lines = formatByInterestAndExperience(rows, o => o.expertise);
+      if (expertise.length) {
+        output.push(formatByInterestAndExperience(expertise, o => o.expertise));
+      }
+      if (me && outstanding) {
+        output.push(`_*No data for:* ${outstanding}_`);
+      }
       return [
-        header,
-        lines,
-        me ? `Update your expertise with \`${this.command} update\`.` : null,
+        ...output,
+        me ? `_Update your expertise with_ \`${this.command} update\`.` : null,
       ];
     });
   },
@@ -192,8 +203,15 @@ addCommand('find', {
     return findExpertiseAndHandleErrors(search).then(results => {
       const {match} = results;
       output.push(results.output);
-      return query('expertise_for_all', match.id).then(rows =>
-        formatByInterestAndExperience(rows, o => o.employees));
+      return Promise.props({
+        expertise: query('expertise_for_all', match.id),
+        outstanding: query('expertise_outstanding_by_id', match.id),
+      }).then(({expertise, outstanding: [{employees: outstanding}]}) => {
+        if (outstanding) {
+          output.push(`> *No data for:* ${outstanding}`);
+        }
+        return formatByInterestAndExperience(expertise, o => o.employees);
+      });
     })
     // Success! Print all cached output + final message.
     .then(message => [output, message])
@@ -214,7 +232,9 @@ addCommand('update', {
     const parsed = parseArgs(args, {
       experience: Number,
       interest: Number,
+      // user: String, // Uncomment to allow specifying user when testing
     });
+    const user = getName(parsed.options.user) || this.user.name;
     const newValues = parsed.options;
     const search = parsed.remain.join(' ');
     const output = [...parsed.errors];
@@ -233,7 +253,7 @@ addCommand('update', {
 
       // Old values will be used to show changes at the end. This has to be done
       // before updating the database!
-      const oldValues = query('expertise_by_bocouper_id', this.user.name, match.id).then(r => r[0]);
+      const oldValues = query('expertise_by_bocouper_id', user, match.id).then(r => r[0]);
       return Promise.props({
         match,
         oldValues,
@@ -241,7 +261,7 @@ addCommand('update', {
     })
     .then(({match, oldValues}) => {
       // Actually make the change in the database.
-      const updatePromise = query('update_expertise', this.user.name, match.id,
+      const updatePromise = query('update_expertise', user, match.id,
                                   newValues.experience, newValues.interest, '');
       return Promise.props({
         oldValues,
@@ -253,7 +273,10 @@ addCommand('update', {
       // Show a summary of the changes.
       const summary = ['interest', 'experience'].map(prop => {
         const name = prop[0].toUpperCase() + prop.slice(1).toLowerCase();
-        if (newValues[prop] === oldValues[prop]) {
+        if (!oldValues) {
+          return `${name} set to ${newValues[prop]}.`;
+        }
+        else if (newValues[prop] === oldValues[prop]) {
           return `${name} unchanged at ${newValues[prop]}.`;
         }
         return `${name} changed from ${oldValues[prop]} to ${newValues[prop]}.`;
