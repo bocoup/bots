@@ -7,8 +7,9 @@ module.exports = {
   isProduction: isProduction,
   env: isProduction ? 'production' : 'staging',
   db: {
-    host: isProduction ? '172.31.37.51' : 'db.loc',
-    database: 'bocoup',
-    user: 'postgres',
-  },
+    host: process.env.DB_HOST || 'db.loc',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || 'bocoup'
+  }
 };
