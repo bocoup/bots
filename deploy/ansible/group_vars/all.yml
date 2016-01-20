@@ -100,3 +100,7 @@ secret_path: /mnt/secrets
 secret_files:
   - src: bots.json
     dest: /mnt/bots.json
+
+secret_vars:
+  - src: bocoup-rds.json
+    dest: rds_db_secrets
