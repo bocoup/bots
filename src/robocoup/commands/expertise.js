@@ -264,7 +264,10 @@ addCommand('update', {
       // Show a summary of the changes.
       const summary = ['interest', 'experience'].map(prop => {
         const name = prop[0].toUpperCase() + prop.slice(1).toLowerCase();
-        if (newValues[prop] === oldValues[prop]) {
+        if (!oldValues) {
+          return `${name} set to ${newValues[prop]}.`;
+        }
+        else if (newValues[prop] === oldValues[prop]) {
           return `${name} unchanged at ${newValues[prop]}.`;
         }
         return `${name} changed from ${oldValues[prop]} to ${newValues[prop]}.`;
