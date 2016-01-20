@@ -69,11 +69,14 @@ function abort(...args) {
   return error;
 }
 
+// Get user name sans leading sigil.
+const getName = name => name.replace(/^@/, '');
+
 // Data-formatting helper.
 function formatByInterestAndExperience(rows, fn) {
   return rows.map(row => {
     const [interest, experience] = row.interest_experience;
-    return `*Interest=${interest}, Experience=${experience}:* ${fn(row)}`;
+    return `> *Interest=${interest}, Experience=${experience}:* ${fn(row)}`;
   });
 }
 
@@ -145,18 +148,26 @@ addCommand('for', {
     else if (name === 'me') {
       name = this.user.name;
     }
-    name = name.replace(/^@/, '');
+    name = getName(name);
     const me = name === this.user.name;
-    return query('expertise_interest_experience_by_bocouper', name).then(rows => {
-      if (rows.length === 0) {
-        return `_No matches found. Please try again._`;
+    const output = [];
+    return Promise.props({
+      expertise: query('expertise_interest_experience_by_bocouper', name),
+      outstanding: query('expertise_outstanding_by_bocouper', name),
+    }).then(({expertise, outstanding: [{outstanding}]}) => {
+      output.push(`Listing all expertise for *@${name}*:`);
+      if (!me && outstanding) {
+        output.push(`> *No data for:* ${outstanding}`);
       }
-      const header = `Listing all expertise for *@${name}*:`;
-      const lines = formatByInterestAndExperience(rows, o => o.expertise);
+      if (expertise.length) {
+        output.push(formatByInterestAndExperience(expertise, o => o.expertise));
+      }
+      if (me && outstanding) {
+        output.push(`_*No data for:* ${outstanding}_`);
+      }
       return [
-        header,
-        lines,
-        me ? `Update your expertise with \`${this.command} update\`.` : null,
+        ...output,
+        me ? `_Update your expertise with_ \`${this.command} update\`.` : null,
       ];
     });
   },
