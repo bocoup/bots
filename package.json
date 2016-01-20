@@ -21,7 +21,8 @@
   "scripts": {
     "postinstall": "grunt build",
     "build": "grunt build",
-    "start": "node build/index"
+    "start": "node build/index",
+    "test": "grunt test"
   },
   "devDependencies": {
     "babel-register": "^6.4.3",
