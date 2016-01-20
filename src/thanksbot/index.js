@@ -1,11 +1,9 @@
-import Slack from 'slack-client';
-
 import config from '../../config';
+import {createBot} from '../lib/bot';
 import {query} from '../lib/db';
 import {deparse} from '../lib/slack';
-import {get as getToken} from '../lib/token';
 
-const bot = new Slack(getToken(config, 'thanksbot'), true, true);
+const bot = createBot(config, 'thanksbot');
 
 bot.on('open', function() {
   console.log(`Connected to ${this.team.name} as @${this.self.name}`);
