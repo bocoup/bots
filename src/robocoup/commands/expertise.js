@@ -70,7 +70,7 @@ function abort(...args) {
 }
 
 // Get user name sans leading sigil.
-const getName = name => name.replace(/^@/, '');
+const getName = (name = '') => name.replace(/^@/, '');
 
 // Data-formatting helper.
 function formatByInterestAndExperience(rows, fn) {
@@ -203,8 +203,15 @@ addCommand('find', {
     return findExpertiseAndHandleErrors(search).then(results => {
       const {match} = results;
       output.push(results.output);
-      return query('expertise_for_all', match.id).then(rows =>
-        formatByInterestAndExperience(rows, o => o.employees));
+      return Promise.props({
+        expertise: query('expertise_for_all', match.id),
+        outstanding: query('expertise_outstanding_by_id', match.id),
+      }).then(({expertise, outstanding: [{employees: outstanding}]}) => {
+        if (outstanding) {
+          output.push(`> *No data for:* ${outstanding}`);
+        }
+        return formatByInterestAndExperience(expertise, o => o.employees);
+      });
     })
     // Success! Print all cached output + final message.
     .then(message => [output, message])
@@ -225,7 +232,9 @@ addCommand('update', {
     const parsed = parseArgs(args, {
       experience: Number,
       interest: Number,
+      // user: String, // Uncomment to allow specifying user when testing
     });
+    const user = getName(parsed.options.user) || this.user.name;
     const newValues = parsed.options;
     const search = parsed.remain.join(' ');
     const output = [...parsed.errors];
@@ -244,7 +253,7 @@ addCommand('update', {
 
       // Old values will be used to show changes at the end. This has to be done
       // before updating the database!
-      const oldValues = query('expertise_by_bocouper_id', this.user.name, match.id).then(r => r[0]);
+      const oldValues = query('expertise_by_bocouper_id', user, match.id).then(r => r[0]);
       return Promise.props({
         match,
         oldValues,
@@ -252,7 +261,7 @@ addCommand('update', {
     })
     .then(({match, oldValues}) => {
       // Actually make the change in the database.
-      const updatePromise = query('update_expertise', this.user.name, match.id,
+      const updatePromise = query('update_expertise', user, match.id,
                                   newValues.experience, newValues.interest, '');
       return Promise.props({
         oldValues,
