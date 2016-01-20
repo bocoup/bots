@@ -26,9 +26,10 @@ module.exports = function(grunt) {
         src: [
           'src/index.js',
           'src/lib/args.js',
+          'src/lib/bot.js',
           'src/lib/db.js',
           'src/lib/slack.js',
-          'src/lib/token.js',
+          'src/thanksbot/**',
           'src/robocoup/index.js',
           'src/robocoup/commands/expertise.js',
           'src/robocoup/commands/help.js',

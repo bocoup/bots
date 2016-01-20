@@ -1,15 +1,12 @@
 import Promise from 'bluebird';
-import Slack from 'slack-client';
 import R from 'ramda';
 
 import config from '../../config';
+import {createBot} from '../lib/bot';
 import {deparse} from '../lib/slack';
 import commands from './commands';
 
-import {get as getToken} from '../lib/token';
-const key = getToken(config, 'robocoup');
-
-const bot = new Slack(key, true, true);
+const bot = createBot(config, 'robocoup');
 
 bot.on('open', function() {
   console.log(`Connected to ${this.team.name} as @${this.self.name}`);
