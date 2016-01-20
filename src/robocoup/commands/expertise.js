@@ -3,7 +3,17 @@ import Promise from 'bluebird';
 import {parseArgs} from '../../lib/args';
 import {query} from '../../lib/db';
 
-const description = 'Show your expertise.';
+const description = {
+  brief: 'Show your expertise.',
+  full: `*Experience:*
+\`1\` - I have no experience with this skill.
+\`2\` - I feel comfortable using this skill.
+\`3\` - I feel comfortable being lead for this skill in a consulting gig.
+*Interest:*
+\`1\` - I have no interest in this skill.
+\`2\` - I am interested in learning more about this skill.
+\`3\` - I am interested in becoming an expert in this skill.`,
+};
 
 // ================================
 // TODO: MAKE THIS STUFF INTO A LIB
@@ -18,7 +28,7 @@ function addCommand(name, options) {
 function usage() {
   const commandList = Object.keys(commands).sort().join(', ');
   return [
-    description,
+    description.brief,
     `\`Usage: ${this.command} [${commandList}]\``,
   ];
 }
@@ -48,12 +58,13 @@ addCommand('help', {
   description: 'Display per-command help.',
   fn() {
     return [
-      description,
+      description.brief,
       `\`Usage: ${this.command} [command]\``,
-      'Commands:',
+      '*Commands:*',
       Object.keys(commands).sort().map(name => {
         return `\`${name}\` - ${commands[name].description}`;
       }),
+      description.full,
     ];
   },
 });
