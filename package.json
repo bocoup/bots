@@ -21,6 +21,7 @@
   "scripts": {
     "postinstall": "grunt build",
     "build": "grunt build",
+    "get-secrets": "scp nest.bocoup.com:/mnt/secrets/bots.json .",
     "start": "node build/index",
     "test": "grunt test"
   },
