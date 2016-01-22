@@ -34,3 +34,18 @@ export function createBot(config, name) {
   }
   return new Slack(key, true, true);
 }
+
+// Send a direct message to a user.
+export function sendDM(botInstance, slackName, message) {
+  return new Promise(function(resolve, reject) {
+    const user = botInstance.getUserByName(slackName);
+    if (!user) {
+      throw new Error(`User "${slackName}" not found.`);
+    }
+    botInstance.openDM(user.id, function({channel: {id}}) {
+      const dm = botInstance.getDMByID(id);
+      dm.send(message);
+      resolve();
+    });
+  });
+}

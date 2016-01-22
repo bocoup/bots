@@ -5,11 +5,15 @@ import config from '../../config';
 import {createBot} from '../lib/bot';
 import {deparse} from '../lib/slack';
 import commands from './commands';
+import jobs from './jobs';
 
 const bot = createBot(config, 'robocoup');
 
 bot.on('open', function() {
   console.log(`Connected to ${this.team.name} as @${this.self.name}`);
+  if (config.runJobs) {
+    jobs.start(bot);
+  }
 });
 
 bot.on('message', function(message) {
