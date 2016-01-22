@@ -77,6 +77,10 @@ module.exports = function(grunt) {
       options: {
         spawn: false,
       },
+      config: {
+        files: ['config.js'],
+        tasks: ['kill', 'start'],
+      },
       src: {
         // files: ['<%= eslint.src.src %>'],
         files: ['src/**/*'],
