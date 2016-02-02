@@ -9,4 +9,5 @@
     - {role: configure, tags: configure}
     - {role: services, tags: services}
   handlers:
-    - include: handlers/handlers.yml
+    - name: restart sshd
+      service: name=ssh state=restarted
