@@ -8,9 +8,10 @@ module.exports = {
   runJobs: isProduction,
   env: isProduction ? 'production' : 'staging',
   db: {
-    host: process.env.DB_HOST || 'db.loc',
-    user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME || 'bocoup',
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT
   },
 };
