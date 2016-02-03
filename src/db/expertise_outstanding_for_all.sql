@@ -2,7 +2,7 @@ SELECT
   e.slack,
   ARRAY_AGG(exp.name) AS outstanding
 FROM employee e, expertise exp
-WHERE e.date_end IS null
+WHERE e.last_day IS null
 AND (
   SELECT count(*)
   FROM employee_expertise ee
