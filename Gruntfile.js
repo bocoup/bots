@@ -1,22 +1,12 @@
 'use strict';
 
+var path = require('path');
 var spawn = require('child_process').spawn;
+var babelNode = path.join(__dirname, 'node_modules', '.bin', 'babel-node');
 
 module.exports = function(grunt) {
 
   grunt.initConfig({
-    babel: {
-      options: {
-        sourceMap: 'inline',
-        plugins: ['transform-runtime'],
-      },
-      build: {
-        src: '**/*.js',
-        expand: true,
-        cwd: 'src',
-        dest: 'build',
-      },
-    },
     eslint: {
       src: {
         options: {
@@ -48,17 +38,6 @@ module.exports = function(grunt) {
         src: 'test/**/*.js',
       },
     },
-    clean: {
-      build: 'build',
-    },
-    copy: {
-      build: {
-        expand: true,
-        cwd: 'src',
-        src: ['db/**/*'],
-        dest: 'build',
-      },
-    },
     mochaTest: {
       unit: {
         options: {
@@ -84,7 +63,7 @@ module.exports = function(grunt) {
       src: {
         // files: ['<%= eslint.src.src %>'],
         files: ['src/**/*'],
-        tasks: ['eslint:src', 'mochaTest', 'build', 'kill', 'start'],
+        tasks: ['eslint:src', 'mochaTest', 'kill', 'start'],
       },
       root: {
         files: ['<%= eslint.root.src %>'],
@@ -105,7 +84,7 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('start', function() {
-    global._BOT = spawn('node', ['build/index'], {stdio: 'inherit'});
+    global._BOT = spawn(babelNode, ['src/index'], {stdio: 'inherit'});
   });
 
   grunt.registerTask('kill', function() {
@@ -113,12 +92,8 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('test', ['eslint', 'mochaTest']);
-  grunt.registerTask('build', ['clean', 'babel', 'copy']);
-  grunt.registerTask('default', ['build', 'start', 'watch']);
+  grunt.registerTask('default', ['start', 'watch']);
 
-  grunt.loadNpmTasks('grunt-babel');
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-eslint');
