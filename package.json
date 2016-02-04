@@ -18,10 +18,9 @@
     "slack-client": "^1.5.1"
   },
   "scripts": {
-    "get-secrets": "scp nest.bocoup.com:/mnt/secrets/bots.json .",
     "tunnel": "ssh -L 5400:api-staging.bocoup.com:5432 api-staging.bocoup.com",
     "start": "babel-node ./src/index",
-    "start-dev": "DB_HOST=localhost DB_USER=postgres DB_PORT=5400 DB_NAME=bocoup grunt",
+    "start-dev": "grunt",
     "test": "grunt test"
   },
   "devDependencies": {
