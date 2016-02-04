@@ -18,11 +18,16 @@ function readKey(file) {
     return null;
   }
 }
+const email = readKey('secrets/ses.json');
 
 module.exports = {
   robocoup: process.env.TOKEN_ROBOCOUP || readKey('TOKEN_ROBOCOUP'),
   thanksbot: process.env.TOKEN_THANKSBOT || readKey('TOKEN_THANKSBOT'),
   runJobs: process.env.RUN_JOBS,
+  email: {
+    secret: process.env.EMAIL_SECRET || (email && email.secret),
+    key: process.env.EMAIL_KEY || (email && email.key),
+  },
   db: {
     // these defaults assume an ssh tunnel to our staging database.
     // see the npm script 'tunnel'
