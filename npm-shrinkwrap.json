@@ -2652,6 +2652,11 @@
       "from": "nan@>=2.1.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/nan/-/nan-2.2.0.tgz"
     },
+    "node-ses": {
+      "version": "1.1.0",
+      "from": "node-ses@latest",
+      "resolved": "https://registry.npmjs.org/node-ses/-/node-ses-1.1.0.tgz"
+    },
     "node-uuid": {
       "version": "1.4.7",
       "from": "node-uuid@>=1.4.7 <1.5.0",
@@ -2991,6 +2996,11 @@
       "from": "rx-lite@>=3.1.2 <4.0.0",
       "resolved": "https://registry.npmjs.org/rx-lite/-/rx-lite-3.1.2.tgz"
     },
+    "sax": {
+      "version": "1.1.5",
+      "from": "sax@>=0.6.0",
+      "resolved": "https://registry.npmjs.org/sax/-/sax-1.1.5.tgz"
+    },
     "semver": {
       "version": "4.3.6",
       "from": "semver@>=4.0.3 <5.0.0",
@@ -3100,10 +3110,26 @@
       "from": "sprintf-js@>=1.0.2 <1.1.0",
       "resolved": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.0.3.tgz"
     },
+    "ssh2-streams": {
+      "version": "0.0.21",
+      "from": "ssh2-streams@>=0.0.5 <0.1.0",
+      "resolved": "https://registry.npmjs.org/ssh2-streams/-/ssh2-streams-0.0.21.tgz",
+      "dependencies": {
+        "readable-stream": {
+          "version": "1.0.33",
+          "from": "readable-stream@>=1.0.0 <1.1.0"
+        }
+      }
+    },
     "sshpk": {
       "version": "1.7.3",
       "from": "sshpk@>=1.7.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/sshpk/-/sshpk-1.7.3.tgz"
+    },
+    "streamsearch": {
+      "version": "0.1.2",
+      "from": "streamsearch@>=0.1.2 <0.2.0",
+      "resolved": "https://registry.npmjs.org/streamsearch/-/streamsearch-0.1.2.tgz"
     },
     "string_decoder": {
       "version": "0.10.31",
@@ -3323,6 +3349,23 @@
       "version": "1.0.0",
       "from": "xml-escape@>=1.0.0 <1.1.0",
       "resolved": "https://registry.npmjs.org/xml-escape/-/xml-escape-1.0.0.tgz"
+    },
+    "xml2js": {
+      "version": "0.4.16",
+      "from": "xml2js@>=0.4.0 <0.5.0",
+      "resolved": "https://registry.npmjs.org/xml2js/-/xml2js-0.4.16.tgz"
+    },
+    "xmlbuilder": {
+      "version": "4.2.1",
+      "from": "xmlbuilder@>=4.1.0 <5.0.0",
+      "resolved": "https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-4.2.1.tgz",
+      "dependencies": {
+        "lodash": {
+          "version": "4.2.1",
+          "from": "lodash@>=4.0.0 <5.0.0",
+          "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.2.1.tgz"
+        }
+      }
     },
     "xtend": {
       "version": "4.0.1",
