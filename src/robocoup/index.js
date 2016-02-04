@@ -57,4 +57,9 @@ bot.on('message', function(message) {
     });
 });
 
+bot.on('error', function(error) {
+  console.log('slack error', error);
+});
+
+
 export default bot;
