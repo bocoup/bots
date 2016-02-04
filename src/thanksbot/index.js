@@ -3,7 +3,7 @@ import {createBot} from '../lib/bot';
 import {query} from '../lib/db';
 import {deparse} from '../lib/slack';
 
-const bot = createBot(config, 'thanksbot');
+const bot = createBot('thanksbot', config.thanksbot);
 
 bot.on('open', function() {
   console.log(`Connected to ${this.team.name} as @${this.self.name}`);

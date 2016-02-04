@@ -7,7 +7,7 @@ import {deparse} from '../lib/slack';
 import commands from './commands';
 import jobs from './jobs';
 
-const bot = createBot(config, 'robocoup');
+const bot = createBot('robocoup', config.robocoup);
 
 bot.on('open', function() {
   console.log(`Connected to ${this.team.name} as @${this.self.name}`);
