@@ -1,52 +1,33 @@
 /*
  * A command to show the status of a defined bocouper for today.
  */
-const R = require('ramda');
 const moment = require('moment');
 
-const jsonapi = require('../../lib/jsonapi');
-const bocoup = require('../../lib/bocoup');
+import {query} from '../../lib/db';
 
-exports.usage = 'Show the status of a Bocouper today:\n`Usage: status [slackname]`';
-exports.handler = handler;
+export const usage =
+  'Show the status of a Bocouper today:\n`Usage: status [slackname]`';
 
-function handler (meta, slackname) {
-  console.log(slackname);
+export function handler (meta, slackname) {
   if (!slackname) {
-    return 'No Bocouper specified.';
+    return 'No slack user specified. To see your own status, try `status me`.'
   }
-  const normalizedName = slackname.replace(/@/g,'');
-  const today = moment().format('YYYY-MM-DD');
-  const utilizationForBocouper = bocoup.utilizationsOn.bind(null, today);
-  return bocoup.employeeBySlackName(normalizedName)
-    .get('data')
+  if (slackname === 'me') {
+    slackname = meta.user.name;
+  }
+  return query('status', slackname)
     .get(0)
-    .get('id')
-    .then(utilizationForBocouper)
-    .then(reply);
-}
-function reply (api) {
-  if (api.errors || api.data.length === 0) {
-    throw new Error('No utilization found for '+slackname+' on '+today);
-  }
-  const utilization = api.data[0];
-  const bocouper = utilization.relationships.employee.data;
-  const relations = [
-    'project',
-    'initiative',
-    'type',
-    'leaveRequestType'
-  ].reduce(function (result, relation) {
-    const rel = utilization.relationships[relation].data;
-    result[relation] = (rel && rel.attributes && rel.attributes.name) || 'n/a';
-    return result;
-  }, {})
-  return [
-    '*Status for '+moment().format('MMMM Do, YYYY')+'*',
-    '*Name:* '+bocouper.attributes.first+' '+bocouper.attributes.last,
-    '*Project:* '+relations.project,
-    '*Initiative:* '+relations.initiative,
-    '*Utilization Type:* '+relations.type,
-    '*Leave Type:* '+relations.leaveRequestType
-  ].join('\n');
+    .then((status) => {
+      if (!status) {
+        return 'No bocouper found with the name '+slackname;
+      }
+      return [
+        `*Status for ${moment().format('MMMM Do, YYYY')}*`,
+        `*Name:* ${status.bocouper}`,
+        `*Project:* ${status.project||'n/a'}`,
+        `*Initiative:* ${status.initiative}`,
+        `*Utilization Type:* ${status.utilization_type}`,
+        `*Leave Type:* ${status.leave_type||'n/a'}`
+      ];
+    });
 }
