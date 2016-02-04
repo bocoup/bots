@@ -1,8 +1,6 @@
 'use strict';
 
-var path = require('path');
 var spawn = require('child_process').spawn;
-var babelNode = path.join(__dirname, 'node_modules', '.bin', 'babel-node');
 
 module.exports = function(grunt) {
 
@@ -84,7 +82,7 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('start', function() {
-    global._BOT = spawn(babelNode, ['src/index'], {stdio: 'inherit'});
+    global._BOT = spawn('node', ['--require', 'babel-register', 'src/index'], {stdio: 'inherit'});
   });
 
   grunt.registerTask('kill', function() {
