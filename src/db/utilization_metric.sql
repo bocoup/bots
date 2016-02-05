@@ -1,7 +1,7 @@
 WITH range AS (
   SELECT generate_series(
-    CURRENT_DATE-interval '1 month',
-    CURRENT_DATE+interval '1 month',
+    DATE_TRUNC('year', CURRENT_DATE),
+    CURRENT_DATE+interval '30 days',
     '1 day'
   ) AS day
 ),
@@ -55,6 +55,14 @@ utilization_rate AS (
   WHERE cbe.day = cbu.day
 )
 SELECT
-  (SELECT ROUND(AVG(ur.rate)) FROM utilization_rate AS ur WHERE ur.day < CURRENT_DATE) AS last_30_days,
-  (SELECT ROUND(AVG(ur.rate)) FROM utilization_rate AS ur WHERE ur.day >= CURRENT_DATE) AS next_30_days,
+  ROUND(AVG(ur.rate) FILTER (
+    WHERE ur.day BETWEEN CURRENT_DATE-interval '30 days' AND CURRENT_DATE
+  )) AS last_30_days,
+  ROUND(AVG(ur.rate) FILTER (
+    WHERE ur.day BETWEEN CURRENT_DATE AND CURRENT_DATE+interval '30 days'
+  )) AS next_30_days,
+  ROUND(AVG(ur.rate) FILTER (
+    WHERE ur.day <= CURRENT_DATE
+  )) AS ytd,
   (SELECT cbe.total FROM count_billable_employee AS cbe WHERE cbe.day = CURRENT_DATE) AS billable_count
+FROM utilization_rate AS ur

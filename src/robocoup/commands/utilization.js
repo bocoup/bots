@@ -2,7 +2,6 @@
  * A command to show the utilization status of the company today.
  */
 import R from 'ramda'
-import Promise from 'bluebird';
 import moment from 'moment';
 
 import {query} from '../../lib/db';
@@ -15,9 +14,11 @@ export function handler (meta) {
     .get(0)
     .then((metric) => {
       return [
-        `> During the *last 30 days* our *${metric.billable_count}* billable team members were utilized at rate of *${metric.last_30_days}%* on billable B2B customer projects. Our goal is *80%*.`,
-        `> We are scheduled to be utilized at *${metric.next_30_days}%* in the *next 30 days.*`,
-        `> We have been utilized on billable projects at *%* so far this year.`
+        `> *Utilization Status as of ${moment().format('MMMM Do, YYYY')}*`,
+        `> Our utilization goal is *80%* of our *${metric.billable_count}* billable team members on billable B2B projects.`,
+        `> During the *last 30 days* our utilization rate was *${metric.last_30_days}%*.`,
+        `> During the *next 30 days* our utilization rate is currently scheduled to be *${metric.next_30_days}%*.`,
+        `> Year to date, our utilization rate has been *${metric.ytd}%*.`,
       ];
     });
 }
