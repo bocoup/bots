@@ -4,10 +4,18 @@ import R from 'ramda';
 import config from '../../config';
 import {createBot} from '../lib/bot';
 import {deparse} from '../lib/slack';
+import {DB} from '../lib/db';
 import commands from './commands';
 import jobs from './jobs';
 
 const bot = createBot('robocoup', config.robocoup);
+
+function log (command) {
+  return DB('bot_log').insert({
+    bot: 'robcooup',
+    command
+  }).then();
+}
 
 bot.on('open', function() {
   console.log(`Connected to ${this.team.name} as @${this.self.name}`);
@@ -30,6 +38,7 @@ bot.on('message', function(message) {
   if (message.subtype) {
     return;
   }
+
   // Parse command and args out of message.
   const args = deparse(this, message.text).split(' ');
   const command = args.shift();
@@ -40,11 +49,11 @@ bot.on('message', function(message) {
     return;
   }
   // Run the command!
-  Promise
-    .try(() => {
+  Promise.try(() => {
       const user = this.getUserByID(message.user);
       return handler({command, user}, ...args);
     })
+    .tap(log.bind(null, message.text))
     .then(result => {
       if (Array.isArray(result)) {
         result = R.flatten(result).join('\n');
