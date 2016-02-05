@@ -10,7 +10,7 @@ WITH range AS (
 schedule_to_date AS (
   SELECT r.day FROM range r WHERE EXTRACT('dow' FROM r.day) NOT IN (0,6)
 ),
--- the full position history of everyone at the company
+-- the full position history of all team members at the company
 position_history AS (
  SELECT
     eph1.*,
@@ -23,7 +23,7 @@ position_history AS (
     ) AS last_day
     FROM employee_position_history AS eph1
 ),
--- the count of billable bocoupers on every day in our defined range
+-- the count of billable team members on every day in our defined range
 billable_history AS (
   SELECT
     std.day,
@@ -38,24 +38,23 @@ billable_history AS (
   )
   WHERE ph.is_billable IS true
 ),
--- the number of bocoupers who were billable on the first day of the year
+-- the number of team members who were billable on the first day of the year
 count_billable_first_of_year AS (
   SELECT COUNT(*) AS total
   FROM billable_history AS bh
   WHERE bh.day = DATE_TRUNC('year', CURRENT_DATE)
 ),
--- the number of bocoupers who are billable today
+-- the number of team members who are billable today
 count_billable_today AS (
   SELECT COUNT(*) AS total
   FROM billable_history AS bh
   WHERE bh.day = CURRENT_DATE
 ),
--- a cartesian product of all days of the year so far and all employees
+-- a cartesian product of all days of the year so far and all team members
 schedule_for_all AS (
   SELECT std.day, e.* FROM schedule_to_date AS std, employee AS e
 ),
 -- the number of perch weeks for every bocouper this year
--- this only counts verified utilizations
 weeks_all AS (
   SELECT
     sfa.id AS employee_id,
@@ -71,13 +70,13 @@ weeks_all AS (
   )
   GROUP BY sfa.id, sfa.is_billable
 ),
--- the average number of weeks billable bocoupers have had this year
+-- the average number of weeks billable team members have had this year
 avg_weeks_all AS (
   SELECT ROUND(AVG(wa.total),2) AS total
   FROM weeks_all AS wa
   WHERE wa.is_billable IS true
 ),
--- the total number of weeks billable bocoupers have had this year
+-- the total number of weeks billable team members have had this year
 count_weeks_all AS (
   SELECT SUM(wa.total) AS total
   FROM weeks_all AS wa
@@ -88,7 +87,7 @@ planned_weeks_all AS (
   SELECT (cbt.total*4) AS total
   FROM count_billable_today AS cbt
 ),
--- the number of bocoupers who have had more than four weeks of perch this year
+-- the number of team members who have had more than four weeks of perch this year
 count_had_four_weeks AS (
   SELECT COUNT(wa.*) AS total
   FROM weeks_all AS wa WHERE total >= 4
