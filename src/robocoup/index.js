@@ -12,7 +12,7 @@ const bot = createBot('robocoup', config.robocoup);
 
 function log (command) {
   return DB('bot_log').insert({
-    bot: 'robcooup',
+    bot: 'robocoup',
     command
   }).then();
 }
