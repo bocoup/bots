@@ -2,11 +2,15 @@ import config from '../../config';
 import {createBot} from '../lib/bot';
 import {query} from '../lib/db';
 import {deparse} from '../lib/slack';
+import jobs from './jobs';
 
 const bot = createBot('thanksbot', config.thanksbot);
 
 bot.on('open', function() {
   console.log(`Connected to ${this.team.name} as @${this.self.name}`);
+  if (config.runJobs) {
+    jobs.start(bot);
+  }
 });
 
 bot.on('message', function(message) {
