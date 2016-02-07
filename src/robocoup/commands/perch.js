@@ -38,7 +38,7 @@ export function handler (meta) {
         metricResponse,
         '>',
         `> *Bocoupers on Perch Today:*`,
-        perchingResponse,
+        perchingResponse.length ? perchingResponse : '> none',
       ]);
     });
 }
