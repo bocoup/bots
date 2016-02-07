@@ -24,31 +24,31 @@ position_history AS (
     FROM employee_position_history AS eph1
 ),
 -- the count of billable team members on every day in our defined range
-billable_history AS (
+count_billable_employee AS (
   SELECT
-    std.day,
+    r.day,
     ph.employee_id
-  FROM schedule_to_date AS std
+  FROM range AS r
   INNER JOIN position_history AS ph ON (
-    std.day BETWEEN ph.first_day AND COALESCE(ph.last_day, '3000-01-01')
+    r.day BETWEEN ph.first_day AND COALESCE(ph.last_day, '3000-01-01')
   )
   INNER JOIN employee e ON (
     e.id=ph.employee_id AND
-    std.day BETWEEN e.first_day AND COALESCE(e.last_day, '3000-01-01')
+    r.day BETWEEN e.first_day AND COALESCE(e.last_day, '3000-01-01')
   )
   WHERE ph.is_billable IS true
 ),
 -- the number of team members who were billable on the first day of the year
 count_billable_first_of_year AS (
   SELECT COUNT(*) AS total
-  FROM billable_history AS bh
-  WHERE bh.day = DATE_TRUNC('year', CURRENT_DATE)
+  FROM count_billable_employee AS cbe
+  WHERE cbe.day = DATE_TRUNC('year', CURRENT_DATE)
 ),
 -- the number of team members who are billable today
 count_billable_today AS (
   SELECT COUNT(*) AS total
-  FROM billable_history AS bh
-  WHERE bh.day = CURRENT_DATE
+  FROM count_billable_employee AS cbe
+  WHERE cbe.day = CURRENT_DATE
 ),
 -- a cartesian product of all days of the year so far and all team members
 schedule_for_all AS (

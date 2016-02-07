@@ -1,3 +1,5 @@
+-- a row for each day of the year so far and the next 30 days
+-- TODO: this is going to break when we cross a year boundary
 WITH range AS (
   SELECT generate_series(
     DATE_TRUNC('year', CURRENT_DATE),
@@ -5,9 +7,11 @@ WITH range AS (
     '1 day'
   ) AS day
 ),
+-- limit the rows above to weekdays
 schedule AS (
   SELECT r.day FROM range r WHERE EXTRACT('dow' FROM r.day) NOT IN (0,6)
 ),
+-- the full position history of all team members at the company
 position_history AS (
  SELECT eph1.*, (
     SELECT date(eph2.first_day-interval '1 day')
@@ -18,6 +22,8 @@ position_history AS (
   ) AS last_day
   FROM employee_position_history AS eph1
 ),
+-- get the total number of billable utilizations for each weekday
+-- in our schedule
 count_billable_utilization AS (
   SELECT
     s.day,
@@ -30,21 +36,23 @@ count_billable_utilization AS (
   )
   GROUP BY s.day
 ),
+-- the count of billable team members on every day in our defined range
 count_billable_employee AS (
   SELECT
-    s.day,
+    r.day,
     COUNT(*) AS total
-  FROM schedule AS s
+  FROM range AS r
   INNER JOIN position_history AS ph ON (
-    s.day BETWEEN ph.first_day AND COALESCE(ph.last_day, '3000-01-01')
+    r.day BETWEEN ph.first_day AND COALESCE(ph.last_day, '3000-01-01')
   )
   INNER JOIN employee e ON (
     e.id=ph.employee_id AND
-    s.day BETWEEN e.first_day AND COALESCE(e.last_day, '3000-01-01')
+    r.day BETWEEN e.first_day AND COALESCE(e.last_day, '3000-01-01')
   )
   WHERE ph.is_billable IS true
-  GROUP BY s.day
+  GROUP BY r.day
 ),
+-- calculate the % of utilization for each day in our schedule
 utilization_rate AS (
   SELECT
     cbe.day,
@@ -54,6 +62,7 @@ utilization_rate AS (
   FROM count_billable_employee AS cbe, count_billable_utilization AS cbu
   WHERE cbe.day = cbu.day
 )
+-- build our metric
 SELECT
   ROUND(AVG(ur.rate) FILTER (
     WHERE ur.day BETWEEN CURRENT_DATE-interval '30 days' AND CURRENT_DATE
