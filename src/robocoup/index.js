@@ -10,10 +10,10 @@ import jobs from './jobs';
 
 const bot = createBot('robocoup', config.robocoup);
 
-function log (command) {
+function log(command) {
   return DB('bot_log').insert({
     bot: 'robocoup',
-    command
+    command,
   }).then();
 }
 
@@ -50,20 +50,20 @@ bot.on('message', function(message) {
   }
   // Run the command!
   Promise.try(() => {
-      const user = this.getUserByID(message.user);
-      return handler({command, user}, ...args);
-    })
-    .tap(log.bind(null, message.text))
-    .then(result => {
-      if (Array.isArray(result)) {
-        result = R.flatten(result).join('\n');
-      }
-      channel.send(result);
-    })
-    .catch(error => {
-      channel.send(`An unexpected error occurred: \`${error.message}\``);
-      console.error(error.stack);
-    });
+    const user = this.getUserByID(message.user);
+    return handler({command, user}, ...args);
+  })
+  .tap(log.bind(null, message.text))
+  .then(result => {
+    if (Array.isArray(result)) {
+      result = R.flatten(result).join('\n');
+    }
+    channel.send(result);
+  })
+  .catch(error => {
+    channel.send(`An unexpected error occurred: \`${error.message}\``);
+    console.error(error.stack);
+  });
 });
 
 bot.on('error', function(error) {

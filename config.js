@@ -7,12 +7,10 @@ function readKey(file) {
   const filepath = path.join(__dirname, file);
   const ext = path.extname(filepath);
   try {
-    if (ext == '.json') {
+    if (ext === '.json') {
       return require(filepath);
     }
-    else {
-      return fs.readFileSync(filepath, 'utf8').replace(/^\s+|\s+$/g, '');
-    }
+    return fs.readFileSync(filepath, 'utf8').replace(/^\s+|\s+$/g, '');
   }
   catch (e) {
     return null;
