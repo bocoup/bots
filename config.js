@@ -21,6 +21,7 @@ const email = readKey('secrets/ses.json');
 module.exports = {
   robocoup: process.env.TOKEN_ROBOCOUP || readKey('TOKEN_ROBOCOUP'),
   thanksbot: process.env.TOKEN_THANKSBOT || readKey('TOKEN_THANKSBOT'),
+  badgebot: process.env.TOKEN_BADGEBOT || readKey ('TOKEN_BADGEBOT'),
   runJobs: process.env.RUN_JOBS,
   email: {
     secret: process.env.EMAIL_SECRET || (email && email.secret),
