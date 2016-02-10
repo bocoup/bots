@@ -14,5 +14,6 @@ INNER JOIN business_unit bu ON bu.id=ut.business_unit_id
 LEFT JOIN project AS p ON p.id=u.project_id
 WHERE (
   CURRENT_DATE BETWEEN u.first_day AND u.last_day AND
+  u.sketch_calendar_id IS null AND
   e.slack = ?
 )
