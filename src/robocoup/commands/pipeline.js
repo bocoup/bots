@@ -39,7 +39,7 @@ export function handler (meta) {
       const actual = R.sum(R.map(parseInt)(R.pluck('value')(results)));
       const differential = Math.round(actual/target*100);
       return [
-        `> *Sales Pipeline Status as of ${moment().format('MMMM Do, YYYY')}*`,
+        `> *Sales Pipeline Status as of 12AM on ${moment().format('MMMM Do, YYYY')}*`,
         `> The weighted value of our sales pipeline is currently ​*${currency.format(actual)}​*.`,
         `> We are at *${differential}%* of our ongoing goal of *${currency.format(target)}* for *Q${quarter}* of *${year}*.`,
         `>`
