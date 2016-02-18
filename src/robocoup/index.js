@@ -4,14 +4,14 @@ import R from 'ramda';
 import config from '../../config';
 import {createBot} from '../lib/bot';
 import {deparse} from '../lib/slack';
-import {DB} from '../lib/db';
+import {db} from '../lib/db';
 import commands from './commands';
 import jobs from './jobs';
 
 const bot = createBot('robocoup', config.robocoup);
 
 function log(command) {
-  return DB('bot_log').insert({
+  return db('bot_log').insert({
     bot: 'robocoup',
     command,
   }).then();

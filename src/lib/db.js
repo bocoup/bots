@@ -4,7 +4,7 @@ import knex from 'knex';
 
 import config from '../../config';
 
-export const DB = knex({
+export const db = knex({
   client: 'pg',
   connection: config.db,
 });
@@ -15,7 +15,7 @@ function loadQueries(sqlDir) {
     if (ext === '.sql') {
       queries[name] = (...args) => {
         const sql = fs.readFileSync(path.join(sqlDir, filename), 'utf8');
-        return DB.raw(sql, args);
+        return db.raw(sql, args);
       };
     }
     return queries;
