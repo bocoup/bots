@@ -53,12 +53,12 @@ export default class Dialog {
       ...(oneTimeHeader ? [this._fnOrValue(oneTimeHeader, context), ''] : []),
       this._fnOrValue(message, context),
     ];
-    this.handler = ({message}) => {
-      let {text} = message;
+    this.handler = data => {
+      const {message: {text}} = data;
       if (text.toLowerCase() === exit.toLowerCase()) {
         return this._fnOrValue(this.onCancel);
       }
-      return onResponse(text);
+      return onResponse(data);
     };
     return this;
   }
@@ -70,22 +70,16 @@ export default class Dialog {
     onMatch,
     oneTimeHeader,
   }) {
-    this._start();
     const keys = Object.keys(choices);
-    const context = Object.assign({exit}, this);
-    this.message = [
-      ...(oneTimeHeader ? [this._fnOrValue(oneTimeHeader, context), ''] : []),
+    const message = context => [
       this._fnOrValue(question, context),
       ...keys.map(k => `*${k}:* ${choices[k]}`),
     ];
-    this.handler = ({message}) => {
-      let {text} = message;
-      if (text.toLowerCase() === exit.toLowerCase()) {
-        return this._fnOrValue(this.onCancel);
-      }
+    const onResponse = data => {
+      const {message: {text}} = data;
       const match = keys.find(k => k.toLowerCase() === text.toLowerCase());
       if (match) {
-        return onMatch(match);
+        return onMatch(match, data);
       }
       const dialog = new this.constructor(this);
       return dialog.choose({
@@ -95,6 +89,11 @@ export default class Dialog {
         oneTimeHeader: `Sorry, but \`${text}\` is not a valid response. Please try again.`,
       });
     };
-    return this;
+    return this.ask({
+      exit,
+      message,
+      onResponse,
+      oneTimeHeader,
+    });
   }
 }

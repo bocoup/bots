@@ -152,8 +152,8 @@ function findExpertiseAndHandleErrors(search) {
 // SUB-COMMANDS
 // ============
 
-addCommand('dialog2', {
-  description: 'A quick test of the dialog system.',
+addCommand('dialog-ask', {
+  description: 'A quick test of the dialog system "ask" method.',
   fn() {
     const questions = [
       'Favorite color?',
@@ -165,9 +165,12 @@ addCommand('dialog2', {
     const dialog = new Dialog({
       channel: this.channel,
       timeout: 30,
-      onTimeout: 'Timed out, please type `expertise dialog2` to try again.',
+      onTimeout: 'Timed out, please type `expertise dialog-ask` to try again.',
       onCancel: () => {
-        return `Canceled (${results.length} responses so far), please type \`expertise dialog2\` to try again.`;
+        return heredoc.oneline.trim`
+          Canceled after ${results.length} response${results.length === 1 ? '' : 's'},
+          please type \`expertise dialog-ask\` to try again.
+        `;
       },
     });
 
@@ -175,8 +178,9 @@ addCommand('dialog2', {
       return dialog.ask({
         oneTimeHeader,
         message: questions[results.length],
-        onResponse(response) {
-          results.push(response);
+        onResponse({message}) {
+          const {text} = message;
+          results.push(text);
           if (results.length === questions.length) {
             return [
               `All done! Your responses were:`,
@@ -195,18 +199,18 @@ addCommand('dialog2', {
   },
 });
 
-addCommand('dialog', {
-  description: 'A quick test of the dialog system.',
+addCommand('dialog-choose', {
+  description: 'A quick test of the dialog system "choose" method.',
   fn() {
     const results = [];
 
     const dialog = new Dialog({
       channel: this.channel,
       timeout: 30,
-      onTimeout: 'Timed out, please type `expertise dialog` to try again.',
+      onTimeout: 'Timed out, please type `expertise dialog-choose` to try again.',
       onCancel: () => {
         const resultsTxt = results.length > 0 ? ` (responses so far were \`${results.join(', ')}\`)` : '';
-        return `Canceled${resultsTxt}, please type \`expertise dialog\` to try again.`;
+        return `Canceled${resultsTxt}, please type \`expertise dialog-choose\` to try again.`;
       },
     });
 
