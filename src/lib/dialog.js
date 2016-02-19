@@ -3,50 +3,85 @@ import Promise from 'bluebird';
 export default class Dialog {
   constructor({channel, timeout, onTimeout, onCancel}) {
     this.channel = channel;
-    this.timeout = timeout || 30000;
+    this.timeout = timeout || 30;
     this.onTimeout = onTimeout || 'Dialog timeout, please try again.';
     this.onCancel = onCancel || 'Dialog canceled.';
-    this.start();
+    this._start();
   }
+
   isDone() {
     return Boolean(this._done);
   }
-  stop() {
+
+  _fnOrValue(val, ...args) {
+    return typeof val === 'function' ? val(...args) : val;
+  }
+
+  _stop() {
     this._done = true;
     if (this._timeoutId) {
       clearTimeout(this._timeoutId);
       delete this._timeoutId;
     }
   }
-  start() {
-    this.stop();
+
+  _start() {
+    this._stop();
     this._done = false;
-    this._timeoutId = setTimeout(() => this.cancel(), this.timeout);
+    this._timeoutId = setTimeout(() => this.cancel(), this.timeout * 1000);
   }
+
   cancel() {
-    this.stop();
-    const {onTimeout} = this;
-    this.channel.send(typeof onTimeout === 'function' ? onTimeout() : onTimeout);
+    this._stop();
+    this.channel.send(this._fnOrValue(this.onTimeout));
   }
-  ask(message, fn) {
-    this.start();
-    this.message = message;
-    this.handler = ({message}) => fn(message.text);
+
+  handleMessage(data) {
+    this._stop();
+    return this.handler(data);
+  }
+
+  ask({
+    exit = 'exit',
+    message = `Type anything. Type *${exit}* to cancel. You have ${timeout} seconds:`,
+    onResponse,
+    oneTimeHeader,
+  }) {
+    this._start();
+    const context = Object.assign({exit}, this);
+    this.message = [
+      ...(oneTimeHeader ? [this._fnOrValue(oneTimeHeader, context), ''] : []),
+      this._fnOrValue(message, context),
+    ];
+    this.handler = ({message}) => {
+      let {text} = message;
+      if (text.toLowerCase() === exit.toLowerCase()) {
+        return this._fnOrValue(this.onCancel);
+      }
+      return onResponse(text);
+    };
     return this;
   }
-  choose({choices, exit = 'exit', onMatch, oneTimeHeader}) {
-    this.start();
+
+  choose({
+    choices,
+    exit = 'exit',
+    question = `Choose one of the following, or type *${exit}* to cancel. You have ${timeout} seconds:`,
+    onMatch,
+    oneTimeHeader,
+  }) {
+    this._start();
     const keys = Object.keys(choices);
+    const context = Object.assign({exit}, this);
     this.message = [
-      ...(oneTimeHeader ? [oneTimeHeader, ''] : []),
-      `Choose one of the following, or type *${exit}* to cancel:`,
+      ...(oneTimeHeader ? [this._fnOrValue(oneTimeHeader, context), ''] : []),
+      this._fnOrValue(question, context),
       ...keys.map(k => `*${k}:* ${choices[k]}`),
     ];
     this.handler = ({message}) => {
       let {text} = message;
       if (text.toLowerCase() === exit.toLowerCase()) {
-        const {onCancel} = this;
-        return typeof onCancel === 'function' ? onCancel() : onCancel;
+        return this._fnOrValue(this.onCancel);
       }
       const match = keys.find(k => k.toLowerCase() === text.toLowerCase());
       if (match) {
@@ -61,9 +96,5 @@ export default class Dialog {
       });
     };
     return this;
-  }
-  handleMessage(data) {
-    this.stop();
-    return this.handler(data);
   }
 }

@@ -1,4 +1,5 @@
 import Promise from 'bluebird';
+import heredoc from 'heredoc-tag';
 
 import {parseArgs} from '../../lib/args';
 import {query} from '../../lib/db';
@@ -151,36 +152,79 @@ function findExpertiseAndHandleErrors(search) {
 // SUB-COMMANDS
 // ============
 
-addCommand('dialog', {
+addCommand('dialog2', {
   description: 'A quick test of the dialog system.',
   fn() {
-    const answers = [];
+    const questions = [
+      'Favorite color?',
+      'Favorite number?',
+      'Cats or dogs?',
+    ];
+    const results = [];
 
     const dialog = new Dialog({
       channel: this.channel,
-      timeout: 30000,
-      onTimeout: 'Timed out, please type `expertise dialog` to try again.',
+      timeout: 30,
+      onTimeout: 'Timed out, please type `expertise dialog2` to try again.',
       onCancel: () => {
-        const ans = answers.length > 0 ? ` (answers so far were \`${answers.join(', ')}\`)` : '';
-        return `Canceled${ans}, please type \`expertise dialog\` to try again.`;
+        return `Canceled (${results.length} responses so far), please type \`expertise dialog2\` to try again.`;
       },
     });
-    // return dialog.ask('Answer me!', response => `You answered "${response}", thanks!`);
+
+    const nextQuestion = oneTimeHeader => {
+      return dialog.ask({
+        oneTimeHeader,
+        message: questions[results.length],
+        onResponse(response) {
+          results.push(response);
+          if (results.length === questions.length) {
+            return [
+              `All done! Your responses were:`,
+              ...results.map((r, i) => `*${questions[i]}* ${r}`),
+            ];
+          }
+          return nextQuestion();
+        },
+      });
+    };
+
+    return nextQuestion(({exit, timeout}) => heredoc.oneline.trim`
+      *I'm going to ask you ${questions.length} questions.
+      Type _${exit}_ to cancel. You have ${timeout} seconds to answer each question.*
+    `);
+  },
+});
+
+addCommand('dialog', {
+  description: 'A quick test of the dialog system.',
+  fn() {
+    const results = [];
+
+    const dialog = new Dialog({
+      channel: this.channel,
+      timeout: 30,
+      onTimeout: 'Timed out, please type `expertise dialog` to try again.',
+      onCancel: () => {
+        const resultsTxt = results.length > 0 ? ` (responses so far were \`${results.join(', ')}\`)` : '';
+        return `Canceled${resultsTxt}, please type \`expertise dialog\` to try again.`;
+      },
+    });
 
     const nextQuestion = oneTimeHeader => {
       return dialog.choose({
         oneTimeHeader,
+        question: ({exit, timeout}) => `Make a choice, or type *${exit}* to cancel. You have ${timeout} seconds:`,
         choices: {
           A: 'the first choice',
           B: 'the second choice',
           C: 'the third choice',
         },
         onMatch(match) {
-          answers.push(match);
-          if (answers.length === 3) {
-            return `All done! Your answers were \`${answers.join(', ')}\`.`;
+          results.push(match);
+          if (results.length === 3) {
+            return `All done! Your responses were \`${results.join(', ')}\`.`;
           }
-          return nextQuestion(`You answered \`${match}\`, thanks!`);
+          return nextQuestion(`You responded \`${match}\`, thanks!`);
         },
       });
     };
