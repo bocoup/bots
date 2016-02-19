@@ -61,7 +61,7 @@ bot.on('message', function(message) {
     // Run the command!
     return handler({channel, command, user}, ...args);
   })
-  .tap(log.bind(null, message.text))
+  .tap(() => log(message.text))
   .then(result => {
     if (Array.isArray(result)) {
       result = R.flatten(result).join('\n');
