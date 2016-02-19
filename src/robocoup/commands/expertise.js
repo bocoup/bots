@@ -2,6 +2,7 @@ import Promise from 'bluebird';
 
 import {parseArgs} from '../../lib/args';
 import {query} from '../../lib/db';
+import Dialog from '../../lib/dialog';
 
 const description = {
   brief: 'Show your expertise.',
@@ -34,9 +35,10 @@ function usage() {
 }
 
 export function handler(meta, subcommand, ...args) {
-  const {user, command} = meta;
+  const {channel, user, command} = meta;
   const cmdObj = commands[subcommand];
   const thisObj = {
+    channel,
     user,
     command,
     subcommand,
@@ -148,6 +150,44 @@ function findExpertiseAndHandleErrors(search) {
 // ============
 // SUB-COMMANDS
 // ============
+
+addCommand('dialog', {
+  description: 'A quick test of the dialog system.',
+  fn() {
+    const answers = [];
+
+    const dialog = new Dialog({
+      channel: this.channel,
+      timeout: 30000,
+      onTimeout: 'Timed out, please type `expertise dialog` to try again.',
+      onCancel: () => {
+        const ans = answers.length > 0 ? ` (answers so far were \`${answers.join(', ')}\`)` : '';
+        return `Canceled${ans}, please type \`expertise dialog\` to try again.`;
+      },
+    });
+    // return dialog.ask('Answer me!', response => `You answered "${response}", thanks!`);
+
+    const nextQuestion = oneTimeHeader => {
+      return dialog.choose({
+        oneTimeHeader,
+        choices: {
+          A: 'the first choice',
+          B: 'the second choice',
+          C: 'the third choice',
+        },
+        onMatch(match) {
+          answers.push(match);
+          if (answers.length === 3) {
+            return `All done! Your answers were \`${answers.join(', ')}\`.`;
+          }
+          return nextQuestion(`You answered \`${match}\`, thanks!`);
+        },
+      });
+    };
+
+    return nextQuestion(`*I'm going to ask you three questions.*`);
+  },
+});
 
 addCommand('for', {
   description: 'List all expertises for the given Bocouper, grouped by interest and experience.',
