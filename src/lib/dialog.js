@@ -42,8 +42,8 @@ export default class Dialog {
   }
 
   ask({
+    message = ({exit, timeout}) => `Type anything. Type *${exit}* to cancel. You have ${timeout} seconds:`,
     exit = 'exit',
-    message = `Type anything. Type *${exit}* to cancel. You have ${timeout} seconds:`,
     onResponse,
     oneTimeHeader,
   }) {
@@ -65,8 +65,8 @@ export default class Dialog {
 
   choose({
     choices,
+    question = ({exit, timeout}) => `Choose one of the following, or type *${exit}* to cancel. You have ${timeout} seconds:`,
     exit = 'exit',
-    question = `Choose one of the following, or type *${exit}* to cancel. You have ${timeout} seconds:`,
     onMatch,
     oneTimeHeader,
   }) {
@@ -81,9 +81,9 @@ export default class Dialog {
       if (match) {
         return onMatch(match, data);
       }
-      const dialog = new this.constructor(this);
-      return dialog.choose({
+      return this.choose({
         choices,
+        question,
         exit,
         onMatch,
         oneTimeHeader: `Sorry, but \`${text}\` is not a valid response. Please try again.`,
