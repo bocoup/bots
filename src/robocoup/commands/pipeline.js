@@ -38,8 +38,10 @@ export function handler (meta) {
       const target = targets[year][parseInt(quarter)];
       const actual = R.sum(R.map(parseInt)(R.pluck('value')(results)));
       const differential = Math.round(actual/target*100);
+      const time = moment.unix(results[0].created_at).tz('America/New_York').format('hA');
+      const day = moment.unix(results[0].created_at).tz('America/New_York').format('MMMM Do, YYYY');
       return [
-        `> *Sales Pipeline Status as of 12AM on ${moment().format('MMMM Do, YYYY')}*`,
+        `> *Sales Pipeline Status as of ${time} (EST) on ${day}.*`,
         `> The weighted value of our sales pipeline is currently ​*${currency.format(actual)}​*.`,
         `> We are at *${differential}%* of our ongoing goal of *${currency.format(target)}* for *Q${quarter}* of *${year}*.`,
         `>`
