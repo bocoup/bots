@@ -1,17 +1,26 @@
-import Promise from 'bluebird';
 import R from 'ramda';
 
 import config from '../../config';
 import {createBot} from '../lib/bot';
 import {deparse} from '../lib/slack';
-import {DB} from '../lib/db';
+import {db} from '../lib/db';
+import Conversation from '../lib/conversation';
 import commands from './commands';
 import jobs from './jobs';
 
 const bot = createBot('robocoup', config.robocoup);
 
+const conversations = {};
+
+function getConversation({id}, fn) {
+  if (!conversations[id]) {
+    conversations[id] = new Conversation();
+  }
+  return conversations[id];
+}
+
 function log(command) {
-  return DB('bot_log').insert({
+  return db('bot_log').insert({
     bot: 'robocoup',
     command,
   }).then();
@@ -39,21 +48,20 @@ bot.on('message', function(message) {
     return;
   }
 
-  // Parse command and args out of message.
-  const args = deparse(this, message.text).split(' ');
-  const command = args.shift();
-  // Is there a handler registered for this command?
-  const handler = commands[command] && commands[command].handler;
-  if (!handler) {
-    channel.send(`Unknown command \`${command}\`.`);
-    return;
-  }
-  // Run the command!
-  Promise.try(() => {
-    const user = this.getUserByID(message.user);
-    return handler({command, user}, ...args);
+  const user = this.getUserByID(message.user);
+  getConversation(channel).handleMessage({message, user}, () => {
+    // Parse command and args out of message.
+    const args = deparse(this, message.text).split(' ');
+    const command = args.shift();
+    // Is there a handler registered for this command?
+    const handler = commands[command] && commands[command].handler;
+    if (!handler) {
+      return `Unknown command \`${command}\`.`;
+    }
+    // Run the command!
+    return handler({channel, command, user}, ...args);
   })
-  .tap(log.bind(null, message.text))
+  .tap(() => log(message.text))
   .then(result => {
     if (Array.isArray(result)) {
       result = R.flatten(result).join('\n');
