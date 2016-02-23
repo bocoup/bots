@@ -41,7 +41,7 @@ export default class Dialog {
     return this.handler(data);
   }
 
-  ask({
+  _ask({
     message = ({exit, timeout}) => `Type anything. Type *${exit}* to cancel. You have ${timeout} seconds:`,
     exit = 'exit',
     onResponse,
@@ -63,7 +63,7 @@ export default class Dialog {
     return this;
   }
 
-  choose({
+  _choose({
     choices,
     question = ({exit, timeout}) => `Choose one of the following, or type *${exit}* to cancel. You have ${timeout} seconds:`,
     exit = 'exit',
@@ -106,5 +106,35 @@ export default class Dialog {
       onResponse,
       oneTimeHeader,
     });
+  }
+
+  _multi(args, apiMethod, responseMethod) {
+    const arr = Array.isArray(args[0]) ? Array.from(args[0]) : args;
+    let lastResult;
+    const next = () => {
+      const item = arr.shift();
+      if (!item) {
+        return lastResult;
+      }
+      const _responseMethod = item[responseMethod];
+      const options = Object.assign({}, item);
+      if (lastResult) {
+        options.oneTimeHeader = lastResult;
+      }
+      options[responseMethod] = (...args) => {
+        lastResult = _responseMethod(...args);
+        return next();
+      };
+      return this[apiMethod](options);
+    }
+    return next();
+  }
+
+  ask(...args) {
+    return this._multi(args, '_ask', 'onResponse');
+  }
+
+  choose(...args) {
+    return this._multi(args, '_choose', 'onMatch');
   }
 }
