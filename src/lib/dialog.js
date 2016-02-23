@@ -70,14 +70,25 @@ export default class Dialog {
     onMatch,
     oneTimeHeader,
   }) {
-    const keys = Object.keys(choices);
+    let keys;
+    if (Array.isArray(choices)) {
+      const tmp = {};
+      keys = choices.map((choice, i) => {
+        tmp[++i] = choice;
+        return i;
+      });
+      choices = tmp;
+    }
+    else {
+      keys = Object.keys(choices);
+    }
     const message = context => [
       this._fnOrValue(question, context),
-      ...keys.map(k => `*${k}:* ${choices[k]}`),
+      ...keys.map(k => `[*${k}*] ${choices[k]}`),
     ];
     const onResponse = data => {
       const {message: {text}} = data;
-      const match = keys.find(k => k.toLowerCase() === text.toLowerCase());
+      const match = keys.find(k => String(k).toLowerCase() === text.toLowerCase());
       if (match) {
         return onMatch(match, data);
       }
