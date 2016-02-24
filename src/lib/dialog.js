@@ -1,5 +1,3 @@
-import Promise from 'bluebird';
-
 export default class Dialog {
   constructor({channel, timeout, onTimeout, onCancel}) {
     this.channel = channel;
@@ -121,12 +119,12 @@ export default class Dialog {
       if (lastResult) {
         options.oneTimeHeader = lastResult;
       }
-      options[responseMethod] = (...args) => {
-        lastResult = _responseMethod(...args);
+      options[responseMethod] = (..._args) => {
+        lastResult = _responseMethod(..._args);
         return next();
       };
       return this[apiMethod](options);
-    }
+    };
     return next();
   }
 
