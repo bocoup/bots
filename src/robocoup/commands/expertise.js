@@ -361,10 +361,9 @@ function updateExpertiseDialog({
           `No, re-choose interest and experience for ${expertiseName}.`,
         ],
         onMatch(match) {
-          if (match !== 1) {
+          if (match === 2) {
             return ask();
           }
-          console.log('newValues', newValues);
           return updateExpertise({user, expertise, newValues}).then(done);
         },
       });
