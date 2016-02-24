@@ -257,13 +257,13 @@ const intExpProps = ['interest', 'experience'];
 
 function updateExpertise({user, expertise, newValues}) {
   const {id} = expertise;
-  const {interest, experience} = newValues;
+  const {interest, experience, reason} = newValues;
   // Old values will be used to show changes at the end. This has to be done
   // before updating the database!
   return query('expertise_by_bocouper_id', user, id).then(r => r[0])
   .then(oldValues => {
     // Actually make the change in the database.
-    const updatePromise = query('update_expertise', user, id, experience, interest, '');
+    const updatePromise = query('update_expertise', user, id, experience, interest, reason || '');
     return Promise.props({
       oldValues,
       // We need to wait for the update to resolve, but do we care about the result?
@@ -307,31 +307,55 @@ function updateExpertiseDialog({
 
     function ask(_oneTimeHeader) {
       const newValues = {};
-      return dialog.choose({
+      return dialog.questions({
         oneTimeHeader: _oneTimeHeader,
         question: ({exit, timeout}) => heredoc.trim.oneline`
           Please choose your interest level for ${expertiseName} or type *${exit}* to cancel.
           You have ${timeout} seconds:
         `,
         choices: INTEREST,
-        onMatch: match => { newValues.interest = match; },
+        onMatch: match => {
+          newValues.interest = match;
+          return `You selected *${newValues.interest}* for interest, thanks!`;
+        },
       }, {
-        oneTimeHeader: () => `You selected *${newValues.interest}* for interest, thanks!`,
         question: ({exit, timeout}) => heredoc.trim.oneline`
           Please choose your experience level for ${expertiseName} or type *${exit}* to cancel.
           You have ${timeout} seconds:
         `,
         choices: EXPERIENCE,
-        onMatch: match => { newValues.experience = match; },
+        onMatch: match => {
+          newValues.experience = match;
+          return `You selected *${newValues.experience}* for experience, thanks!`;
+        },
+      }, () => {
+        return query('expertise_by_bocouper_id', user, expertise.id).then(r => r[0])
+        .then(oldValues => {
+          if (oldValues) {
+            return {
+              question: ({exit, timeout}) => heredoc.trim.unindent`
+                Why has your experience/interest changed for ${expertiseName}?
+                Please explain, or type *${exit}* to cancel. You have ${timeout} seconds:
+              `,
+              onResponse: reason => {
+                newValues.reason = reason;
+                return 'Noted!';
+              },
+            };
+          }
+        });
       }, {
-        question: ({exit, timeout}) => heredoc.trim.unindent`
-          You've selected the following for ${expertiseName}. Is this ok?
+        question: ({exit, timeout}) => {
+          const reason = 'reason' in newValues ? `> Reason: *${newValues.reason}*\n` : '';
+          return heredoc.trim.unindent`
+            You've entered the following for ${expertiseName}. Is this ok?
 
-          *Interest: ${INTEREST[newValues.interest - 1]} (${newValues.interest})*
-          *Experience: ${EXPERIENCE[newValues.experience - 1]} (${newValues.experience})*
-
-          Please choose one of the following, or type *${exit}* to cancel. You have ${timeout} seconds:
-        `,
+            > Interest: *${INTEREST[newValues.interest - 1]}* (${newValues.interest})
+            > Experience: *${EXPERIENCE[newValues.experience - 1]}* (${newValues.experience})
+            ${reason}
+            Please choose one of the following, or type *${exit}* to cancel. You have ${timeout} seconds:
+          `;
+        },
         choices: [
           `Yes, update interest and experience for ${expertiseName}.`,
           `No, re-choose interest and experience for ${expertiseName}.`,
@@ -340,6 +364,7 @@ function updateExpertiseDialog({
           if (match !== 1) {
             return ask();
           }
+          console.log('newValues', newValues);
           return updateExpertise({user, expertise, newValues}).then(done);
         },
       });
