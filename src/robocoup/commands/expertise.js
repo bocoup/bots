@@ -311,33 +311,24 @@ function updateExpertiseDialog({
       const newValues = {};
       return dialog.questions({
         oneTimeHeader: _oneTimeHeader,
-        question: ({exit, timeout}) => heredoc.trim.oneline`
-          Please choose your interest level for ${expertiseName} or type *${exit}* to cancel.
-          You have ${timeout} seconds:
-        `,
+        question: ({exit, timeout}) => `Please choose your interest level for ${expertiseName}:`,
         choices: INTEREST,
         onMatch: match => {
           newValues.interest = match;
-          return `You selected *${newValues.interest}* for interest, thanks!`;
+          return `_You selected *${newValues.interest}* for interest, thanks!_`;
         },
       }, {
-        question: ({exit, timeout}) => heredoc.trim.oneline`
-          Please choose your experience level for ${expertiseName} or type *${exit}* to cancel.
-          You have ${timeout} seconds:
-        `,
+        question: ({exit, timeout}) => `Please choose your experience level for ${expertiseName}:`,
         choices: EXPERIENCE,
         onMatch: match => {
           newValues.experience = match;
-          return `You selected *${newValues.experience}* for experience, thanks!`;
+          return `_You selected *${newValues.experience}* for experience, thanks!_`;
         },
       }, () => oldValues && {
-        question: ({exit, timeout}) => heredoc.trim.unindent`
-          Why has your experience/interest changed for ${expertiseName}?
-          Please explain, or type *${exit}* to cancel. You have ${timeout} seconds:
-        `,
+        question: ({exit, timeout}) => `Why has your experience/interest changed for ${expertiseName}?`,
         onResponse: reason => {
           newValues.reason = reason;
-          return 'Noted!';
+          return '_Noted!_';
         },
       }, {
         question: ({exit, timeout}) => {
@@ -348,7 +339,6 @@ function updateExpertiseDialog({
             > Interest: *${INTEREST[newValues.interest - 1]}* (${newValues.interest})
             > Experience: *${EXPERIENCE[newValues.experience - 1]}* (${newValues.experience})
             ${reason}
-            Please choose one of the following, or type *${exit}* to cancel. You have ${timeout} seconds:
           `;
         },
         choices: [
@@ -366,7 +356,7 @@ function updateExpertiseDialog({
     let lastUpdated;
     if (oldValues) {
       const formatted = moment.duration(-oldValues.seconds_since_last_update, 'seconds').humanize(true);
-      lastUpdated = ['', `You last updated this expertise *${formatted}*.`];
+      lastUpdated = `_You last updated this expertise *${formatted}*._`;
     }
     return ask([
       oneTimeHeader,

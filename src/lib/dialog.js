@@ -43,7 +43,8 @@ export default class Dialog {
 
   // Ask a question, get an arbitrary text answer.
   ask({
-    question = ({exit, timeout}) => `Type anything. Type *${exit}* to cancel. You have ${timeout} seconds:`,
+    question = `Type anything.`,
+    prompt = ({exit, timeout}) => `_You have ${timeout} seconds to answer. Type *${exit}* to cancel._`,
     exit = 'exit',
     onResponse,
     oneTimeHeader,
@@ -53,6 +54,8 @@ export default class Dialog {
     this.message = [
       ...(oneTimeHeader ? [this._fnOrValue(oneTimeHeader, context), ''] : []),
       this._fnOrValue(question, context),
+      '',
+      this._fnOrValue(prompt, context),
     ];
     this.handler = data => {
       const {message: {text}} = data;
@@ -70,9 +73,11 @@ export default class Dialog {
   // array indices are displayed (and passed into onMatch) starting at 1.
   choose({
     choices,
-    question = ({exit, timeout}) => `Choose one of the following, or type *${exit}* to cancel. You have ${timeout} seconds:`,
-    exit = 'exit',
+    question = `Choose one of the following:`,
+    prompt = null,
+    exit = null,
     onMatch,
+    onError = text => `_Sorry, but \`${text}\` is not a valid response. Please try again._`,
     oneTimeHeader,
   }) {
     let keys;
@@ -89,6 +94,7 @@ export default class Dialog {
     }
     const _question = context => [
       this._fnOrValue(question, context),
+      '',
       ...keys.map(k => `[*${k}*] ${choices[k]}`),
     ];
     const onResponse = (text, data) => {
@@ -99,17 +105,21 @@ export default class Dialog {
       return this.choose({
         choices,
         question,
+        prompt,
         exit,
         onMatch,
-        oneTimeHeader: `Sorry, but \`${text}\` is not a valid response. Please try again.`,
+        onError,
+        oneTimeHeader: this._fnOrValue(onError, text, data),
       });
     };
-    return this.ask({
-      exit,
+    const options = {
       question: _question,
       onResponse,
       oneTimeHeader,
-    });
+    };
+    if (prompt) { options.prompt = prompt; }
+    if (exit) { options.exit = exit; }
+    return this.ask(options);
   }
 
   // Wrapper around single-question methods. Pass in a single question, an
