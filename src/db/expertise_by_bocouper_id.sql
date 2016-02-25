@@ -12,7 +12,7 @@ SELECT
   ee.experience_rating AS experience,
   et.name AS type,
   ea.name AS area,
-  DATE_PART('days', (CURRENT_DATE-lel.latest)) AS days_since_last_update
+  EXTRACT(epoch from (CURRENT_TIMESTAMP-lel.latest))::INTEGER AS seconds_since_last_update
 FROM latest_expertise_log lel
 INNER JOIN employee_expertise ee ON
   ee.employee_id=lel.employee_id AND
