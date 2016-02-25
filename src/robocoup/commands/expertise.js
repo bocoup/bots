@@ -295,7 +295,7 @@ function updateExpertiseDialog({
   oneTimeHeader = null,
   done = val => val,
 }) {
-  const expertiseName = `${expertise.type.toLowerCase()} *${expertise.expertise}*`;
+  const expertiseName = `*${expertise.expertise}*`;
   return query('expertise_by_bocouper_id', user, expertise.id)
   .then(([oldValues]) => {
     const dialog = new Dialog({
@@ -342,7 +342,7 @@ function updateExpertiseDialog({
           `;
         },
         choices: [
-          `Yes, update interest and experience for ${expertiseName}.`,
+          `Save these changes.`,
           `No, re-choose interest and experience for ${expertiseName}.`,
         ],
         onMatch(match) {
@@ -361,6 +361,8 @@ function updateExpertiseDialog({
     return ask([
       oneTimeHeader,
       lastUpdated,
+      '',
+      `> ${expertise.description}`,
     ]);
   });
 }
@@ -375,6 +377,7 @@ function updateMissing({channel, user}) {
           View your expertise list with \`expertise me\`.
         `;
       }
+      const expertise = missing[0];
       const num = missing.length === 1 ? '' : ` ${missing.length}`;
       const oneTimeHeader = [
         ...(header ? [header, ''] : []),
@@ -382,11 +385,13 @@ function updateMissing({channel, user}) {
           You have no data for the following${num} expertise${missing.length === 1 ? '' : 's'}:
           *${missing.map(m => m.expertise).join(', ')}*.
         `,
+        '',
+        `Let's update *${expertise.expertise}*.`,
       ];
       return updateExpertiseDialog({
         channel,
         user,
-        expertise: missing[0],
+        expertise,
         command: 'expertise update missing',
         oneTimeHeader,
         done: ask,

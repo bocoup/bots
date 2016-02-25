@@ -1,6 +1,7 @@
 SELECT
   exp.id AS id,
   exp.name AS expertise,
+  exp.description AS description,
   et.name AS type,
   ea.name AS area
 FROM employee e, expertise exp
