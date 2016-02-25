@@ -1,5 +1,6 @@
 import Promise from 'bluebird';
 import heredoc from 'heredoc-tag';
+import moment from 'moment';
 
 import {parseArgs} from '../../lib/args';
 import {query} from '../../lib/db';
@@ -295,7 +296,8 @@ function updateExpertiseDialog({
   done = val => val,
 }) {
   const expertiseName = `${expertise.type.toLowerCase()} *${expertise.expertise}*`;
-  return Promise.try(() => {
+  return query('expertise_by_bocouper_id', user, expertise.id)
+  .then(([oldValues]) => {
     const dialog = new Dialog({
       channel,
       timeout: 60,
@@ -328,22 +330,15 @@ function updateExpertiseDialog({
           newValues.experience = match;
           return `You selected *${newValues.experience}* for experience, thanks!`;
         },
-      }, () => {
-        return query('expertise_by_bocouper_id', user, expertise.id).then(r => r[0])
-        .then(oldValues => {
-          if (oldValues) {
-            return {
-              question: ({exit, timeout}) => heredoc.trim.unindent`
-                Why has your experience/interest changed for ${expertiseName}?
-                Please explain, or type *${exit}* to cancel. You have ${timeout} seconds:
-              `,
-              onResponse: reason => {
-                newValues.reason = reason;
-                return 'Noted!';
-              },
-            };
-          }
-        });
+      }, () => oldValues && {
+        question: ({exit, timeout}) => heredoc.trim.unindent`
+          Why has your experience/interest changed for ${expertiseName}?
+          Please explain, or type *${exit}* to cancel. You have ${timeout} seconds:
+        `,
+        onResponse: reason => {
+          newValues.reason = reason;
+          return 'Noted!';
+        },
       }, {
         question: ({exit, timeout}) => {
           const reason = 'reason' in newValues ? `> Reason: *${newValues.reason}*\n` : '';
@@ -368,7 +363,15 @@ function updateExpertiseDialog({
         },
       });
     }
-    return ask(oneTimeHeader);
+    let lastUpdated;
+    if (oldValues) {
+      const formatted = moment.duration(-oldValues.seconds_since_last_update, 'seconds').humanize(true);
+      lastUpdated = ['', `You last updated this expertise *${formatted}*.`];
+    }
+    return ask([
+      oneTimeHeader,
+      lastUpdated,
+    ]);
   });
 }
 
