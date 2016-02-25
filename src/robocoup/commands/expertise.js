@@ -372,6 +372,37 @@ function updateExpertiseDialog({
   });
 }
 
+function updateMissing({channel, user}) {
+  function ask(header) {
+    return query('expertise_missing_by_bocouper', user)
+    .then(missing => {
+      if (missing.length === 0) {
+        return heredoc.trim.unindent`
+          You have no outstanding expertise data.
+          View your expertise list with \`expertise me\`.
+        `;
+      }
+      const num = missing.length === 1 ? '' : ` ${missing.length}`;
+      const oneTimeHeader = [
+        ...(header ? [header, ''] : []),
+        heredoc.trim.oneline`
+          You have no data for the following${num} expertise${missing.length === 1 ? '' : 's'}:
+          *${missing.map(m => m.expertise).join(', ')}*.
+        `,
+      ];
+      return updateExpertiseDialog({
+        channel,
+        user,
+        expertise: missing[0],
+        command: 'expertise update missing',
+        oneTimeHeader,
+        done: ask,
+      });
+    });
+  }
+  return ask();
+}
+
 addCommand('update', {
   description: 'Update your interest and experience for the given expertise.',
   usage: command => `${command} <expertise> [interest=<1-3> experience=<1-3>]`,
@@ -385,6 +416,12 @@ addCommand('update', {
     const search = parsed.remain.join(' ');
     const output = [...parsed.errors];
 
+    if (search === 'missing') {
+      return updateMissing({
+        channel: this.channel,
+        user,
+      });
+    }
     if (!search) {
       return this.usage();
     }
