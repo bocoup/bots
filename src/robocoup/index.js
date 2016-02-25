@@ -48,6 +48,12 @@ bot.on('message', function(message) {
     return;
   }
 
+  // Flatten result array and remove `null` items, then join on newline.
+  const normalizeResult = R.pipe(
+    R.flatten,
+    R.reject(R.isNil),
+    R.join('\n')
+  );
   const user = this.getUserByID(message.user);
   getConversation(channel).handleMessage({message, user}, () => {
     // Parse command and args out of message.
@@ -64,7 +70,7 @@ bot.on('message', function(message) {
   .tap(() => log(message.text))
   .then(result => {
     if (Array.isArray(result)) {
-      result = R.flatten(result).join('\n');
+      result = normalizeResult(result);
     }
     channel.send(result);
   })
