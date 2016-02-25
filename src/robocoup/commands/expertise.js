@@ -24,10 +24,10 @@ const INTEREST = [
 const description = {
   brief: 'Show your expertise.',
   full: [
-    '*Experience:*',
-    EXPERIENCE.map((s, i) => `\`${i + 1}\` - ${s}`),
     '*Interest:*',
-    INTEREST.map((s, i) => `\`${i + 1}\` - ${s}`),
+    INTEREST.map((s, i) => `*${i + 1}.* ${s}`),
+    '*Experience:*',
+    EXPERIENCE.map((s, i) => `*${i + 1}.* ${s}`),
   ],
 };
 
@@ -282,7 +282,7 @@ function updateExpertise({user, expertise, newValues}) {
       }
       return `${name} changed from ${oldValues[prop]} to ${newValues[prop]}.`;
     }).join(' ');
-    return `Done! ${summary}`;
+    return `Expertise for *${expertise.expertise}* updated: ${summary}`;
   });
 }
 
@@ -405,7 +405,7 @@ function updateMissing({channel, user}) {
 
 addCommand('update', {
   description: 'Update your interest and experience for the given expertise.',
-  usage: command => `${command} <expertise> [interest=<1-3> experience=<1-3>]`,
+  usage: command => `${command} missing | <expertise> [interest=<1-5> experience=<1-5>]`,
   fn(...args) {
     const parsed = parseArgs(args, {
       experience: Number,
