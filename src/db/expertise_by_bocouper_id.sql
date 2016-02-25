@@ -17,7 +17,7 @@ FROM latest_expertise_log lel
 INNER JOIN employee_expertise ee ON
   ee.employee_id=lel.employee_id AND
   ee.expertise_id=lel.expertise_id AND
-  lel.created_at=lel.latest
+  ee.created_at=lel.latest
 INNER JOIN employee e ON e.id=ee.employee_id
 INNER JOIN expertise exp ON exp.id=ee.expertise_id
 INNER JOIN expertise_area ea ON ea.id=exp.expertise_area_id
