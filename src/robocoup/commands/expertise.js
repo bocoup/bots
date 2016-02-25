@@ -298,7 +298,7 @@ function updateExpertiseDialog({
   return Promise.try(() => {
     const dialog = new Dialog({
       channel,
-      timeout: 30,
+      timeout: 60,
       onTimeout: `Timed out, please type \`${command}\` to try again.`,
       onCancel: () => {
         return `Canceled, please type \`${command}\` to try again.`;
