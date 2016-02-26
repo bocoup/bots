@@ -1,5 +1,6 @@
 import Promise from 'bluebird';
 import heredoc from 'heredoc-tag';
+import moment from 'moment';
 
 import {parseArgs} from '../../lib/args';
 import {query} from '../../lib/db';
@@ -7,14 +8,6 @@ import Dialog from '../../lib/dialog';
 
 const description = {
   brief: 'Show your expertise.',
-  full: `*Experience:*
-\`1\` - I have no experience with this skill.
-\`2\` - I feel comfortable using this skill.
-\`3\` - I feel comfortable being lead for this skill in a consulting gig.
-*Interest:*
-\`1\` - I have no interest in this skill.
-\`2\` - I am interested in learning more about this skill.
-\`3\` - I am interested in becoming an expert in this skill.`,
 };
 
 // ================================
@@ -36,10 +29,11 @@ function usage() {
 }
 
 export function handler(meta, subcommand, ...args) {
-  const {channel, user, command} = meta;
+  const {channel, postMessage, user, command} = meta;
   const cmdObj = commands[subcommand];
   const thisObj = {
     channel,
+    postMessage,
     user,
     command,
     subcommand,
@@ -148,94 +142,20 @@ function findExpertiseAndHandleErrors(search) {
   });
 }
 
+function getIntExpScales() {
+  return query('expertise_scales').then(results => results.reduce((result, {type, id, name}) => {
+    if (!result[type]) {
+      result[type] = {};
+    }
+    result[type][id] = name;
+    return result;
+  }, {}));
+}
+
+
 // ============
 // SUB-COMMANDS
 // ============
-
-addCommand('dialog-ask', {
-  description: 'A quick test of the dialog system "ask" method.',
-  fn() {
-    const questions = [
-      'Favorite color?',
-      'Favorite number?',
-      'Cats or dogs?',
-    ];
-    const results = [];
-
-    const dialog = new Dialog({
-      channel: this.channel,
-      timeout: 30,
-      onTimeout: 'Timed out, please type `expertise dialog-ask` to try again.',
-      onCancel: () => {
-        return heredoc.oneline.trim`
-          Canceled after ${results.length} response${results.length === 1 ? '' : 's'},
-          please type \`expertise dialog-ask\` to try again.
-        `;
-      },
-    });
-
-    const nextQuestion = oneTimeHeader => {
-      return dialog.ask({
-        oneTimeHeader,
-        message: questions[results.length],
-        onResponse({message}) {
-          const {text} = message;
-          results.push(text);
-          if (results.length === questions.length) {
-            return [
-              `All done! Your responses were:`,
-              ...results.map((r, i) => `*${questions[i]}* ${r}`),
-            ];
-          }
-          return nextQuestion();
-        },
-      });
-    };
-
-    return nextQuestion(({exit, timeout}) => heredoc.oneline.trim`
-      *I'm going to ask you ${questions.length} questions.
-      Type _${exit}_ to cancel. You have ${timeout} seconds to answer each question.*
-    `);
-  },
-});
-
-addCommand('dialog-choose', {
-  description: 'A quick test of the dialog system "choose" method.',
-  fn() {
-    const results = [];
-
-    const dialog = new Dialog({
-      channel: this.channel,
-      timeout: 30,
-      onTimeout: 'Timed out, please type `expertise dialog-choose` to try again.',
-      onCancel: () => {
-        const resultsTxt = results.length > 0 ? ` (responses so far were \`${results.join(', ')}\`)` : '';
-        return `Canceled${resultsTxt}, please type \`expertise dialog-choose\` to try again.`;
-      },
-    });
-
-    const nextQuestion = oneTimeHeader => {
-      return dialog.choose({
-        oneTimeHeader,
-        question: ({exit, timeout}) => `Make a choice, or type *${exit}* to cancel. You have ${timeout} seconds:`,
-        choices: {
-          A: 'the first choice',
-          B: 'the second choice',
-          C: 'the third choice',
-        },
-        onMatch(match) {
-          results.push(match);
-          if (results.length === 3) {
-            return `All done! Your responses were \`${results.join(', ')}\`.`;
-          }
-          return nextQuestion(`You responded \`${match}\`, thanks!`);
-        },
-      });
-    };
-
-    return nextQuestion(`*I'm going to ask you three questions.*`);
-  },
-});
 
 addCommand('for', {
   description: 'List all expertises for the given Bocouper, grouped by interest and experience.',
@@ -324,9 +244,175 @@ addCommand('find', {
   },
 });
 
+addCommand('scales', {
+  description: 'List interest and experience scales.',
+  fn() {
+    return getIntExpScales().then(({interest, experience}) => {
+      const list = o => Object.keys(o).map(k => `> *${k}.* ${o[k]}`);
+      return [
+        '*Interest:*',
+        list(interest),
+        '*Experience:*',
+        list(experience),
+      ];
+    });
+  },
+});
+
+const intExpProps = ['interest', 'experience'];
+
+function updateExpertise({user, expertise, newValues}) {
+  const {id} = expertise;
+  const {interest, experience, reason} = newValues;
+  // Old values will be used to show changes at the end. This has to be done
+  // before updating the database!
+  return query('expertise_by_bocouper_id', user, id).then(r => r[0])
+  .then(oldValues => {
+    // Actually make the change in the database.
+    const updatePromise = query('update_expertise', user, id, experience, interest, reason || '');
+    return Promise.props({
+      oldValues,
+      // We need to wait for the update to resolve, but do we care about the result?
+      updatePromise,
+    });
+  })
+  .then(({oldValues}) => {
+    // Show a summary of the changes.
+    const summary = intExpProps.map(prop => {
+      const name = prop[0].toUpperCase() + prop.slice(1).toLowerCase();
+      if (!oldValues) {
+        return `${name} set to ${newValues[prop]}.`;
+      }
+      else if (newValues[prop] === oldValues[prop]) {
+        return `${name} unchanged at ${newValues[prop]}.`;
+      }
+      return `${name} changed from ${oldValues[prop]} to ${newValues[prop]}.`;
+    }).join(' ');
+    return `Expertise for *${expertise.expertise}* updated: ${summary}`;
+  });
+}
+
+function updateExpertiseDialog({
+  postMessage,
+  user,
+  expertise,
+  command,
+  oneTimeHeader = null,
+  done = val => val,
+}) {
+  const expertiseName = `*${expertise.expertise}*`;
+  return Promise.props({
+    oldValues: query('expertise_by_bocouper_id', user, expertise.id),
+    scales: getIntExpScales(),
+  })
+  .then(({scales, oldValues: [oldValues]}) => {
+    const dialog = new Dialog({
+      postMessage,
+      timeout: 60,
+      onTimeout: `Timed out, please type \`${command}\` to try again.`,
+      onCancel: () => {
+        return `Canceled, please type \`${command}\` to try again.`;
+      },
+    });
+
+    function ask(_oneTimeHeader) {
+      const newValues = {};
+      return dialog.questions({
+        oneTimeHeader: _oneTimeHeader,
+        question: ({exit, timeout}) => `Please choose your interest level for ${expertiseName}:`,
+        choices: scales.interest,
+        onMatch: match => {
+          newValues.interest = match;
+          return `_You selected *${newValues.interest}* for interest, thanks!_`;
+        },
+      }, {
+        question: ({exit, timeout}) => `Please choose your experience level for ${expertiseName}:`,
+        choices: scales.experience,
+        onMatch: match => {
+          newValues.experience = match;
+          return `_You selected *${newValues.experience}* for experience, thanks!_`;
+        },
+      }, () => oldValues && {
+        question: ({exit, timeout}) => `Why has your experience/interest changed for ${expertiseName}?`,
+        onResponse: reason => {
+          newValues.reason = reason;
+          return '_Noted!_';
+        },
+      }, {
+        question: ({exit, timeout}) => {
+          const reason = 'reason' in newValues ? `> Reason: *${newValues.reason}*\n` : '';
+          return heredoc.trim.unindent`
+            You've entered the following for ${expertiseName}. Is this ok?
+
+            > Interest: *${scales.interest[newValues.interest]}* (${newValues.interest})
+            > Experience: *${scales.experience[newValues.experience]}* (${newValues.experience})
+            ${reason}
+          `;
+        },
+        choices: [
+          `Save these changes.`,
+          `No, re-choose interest and experience for ${expertiseName}.`,
+        ],
+        onMatch(match) {
+          if (match === 2) {
+            return ask();
+          }
+          return updateExpertise({user, expertise, newValues}).then(done);
+        },
+      });
+    }
+    let lastUpdated;
+    if (oldValues) {
+      const formatted = moment.duration(-oldValues.seconds_since_last_update, 'seconds').humanize(true);
+      lastUpdated = `_You last updated this expertise *${formatted}*._`;
+    }
+    return ask([
+      oneTimeHeader,
+      lastUpdated,
+      '',
+      `> ${expertiseName} / *${expertise.area}* / *${expertise.type}*`,
+      `${expertise.description.replace(/^/gm, '> ')}`,
+    ]);
+  });
+}
+
+function updateMissing({postMessage, user}) {
+  function ask(header) {
+    return query('expertise_missing_by_bocouper', user)
+    .then(missing => {
+      if (missing.length === 0) {
+        return heredoc.trim.unindent`
+          You have no outstanding expertise data.
+          View your expertise list with \`expertise me\`.
+        `;
+      }
+      const expertise = missing[0];
+      const num = missing.length === 1 ? '' : ` ${missing.length}`;
+      const oneTimeHeader = [
+        ...(header ? [header, ''] : []),
+        heredoc.trim.oneline`
+          You have no data for the following${num} expertise${missing.length === 1 ? '' : 's'}:
+          *${missing.map(m => m.expertise).join(', ')}*.
+        `,
+        '',
+        `Let's update *${expertise.expertise}*.`,
+      ];
+      return updateExpertiseDialog({
+        postMessage,
+        user,
+        expertise,
+        command: 'expertise update missing',
+        oneTimeHeader,
+        done: ask,
+      });
+    });
+  }
+  return ask();
+}
+
 addCommand('update', {
   description: 'Update your interest and experience for the given expertise.',
-  usage: command => `${command} <expertise> interest=<1-3> experience=<1-3>`,
+  usage: command => `${command} missing | <expertise> [interest=<1-5> experience=<1-5>]`,
   fn(...args) {
     const parsed = parseArgs(args, {
       experience: Number,
@@ -334,59 +420,48 @@ addCommand('update', {
       // user: String, // Uncomment to allow specifying user when testing
     });
     const user = getName(parsed.options.user) || this.user.name;
-    const newValues = parsed.options;
     const search = parsed.remain.join(' ');
     const output = [...parsed.errors];
 
+    if (search === 'missing') {
+      return updateMissing({
+        postMessage: this.postMessage,
+        user,
+      });
+    }
     if (!search) {
       return this.usage();
     }
 
+    // Print all cached output + final message + tag line.
+    const done = message => [
+      output,
+      message,
+      `View your expertise list with \`expertise me\`.`,
+    ];
+
     return findExpertiseAndHandleErrors(search).then(results => {
-      const {match} = results;
       output.push(results.output);
 
-      if (!newValues.experience || !newValues.interest) {
-        throw abort(`_Please specify both experience and interest._`, this.usage());
+      const {match} = results;
+      const newValues = parsed.options;
+      const numProps = intExpProps.reduce((n, p) => n + (p in newValues), 0);
+      if (numProps === 1) {
+        throw abort(`_You must update both interest and experience at the same time._`, this.usage());
       }
-
-      // Old values will be used to show changes at the end. This has to be done
-      // before updating the database!
-      const oldValues = query('expertise_by_bocouper_id', user, match.id).then(r => r[0]);
-      return Promise.props({
-        match,
-        oldValues,
+      else if (numProps === 2) {
+        return updateExpertise({user, expertise: match, newValues}).then(done);
+      }
+      const command = `expertise update ${search.toLowerCase()}`;
+      return updateExpertiseDialog({
+        postMessage: this.postMessage,
+        user,
+        expertise: match,
+        command,
+        oneTimeHeader: output.splice(0, output.length),
+        done,
       });
     })
-    .then(({match, oldValues}) => {
-      // Actually make the change in the database.
-      const updatePromise = query('update_expertise', user, match.id,
-                                  newValues.experience, newValues.interest, '');
-      return Promise.props({
-        oldValues,
-        // We need to wait for the update to resolve, but do we care about the result?
-        updatePromise,
-      });
-    })
-    .then(({oldValues}) => {
-      // Show a summary of the changes.
-      const summary = ['interest', 'experience'].map(prop => {
-        const name = prop[0].toUpperCase() + prop.slice(1).toLowerCase();
-        if (!oldValues) {
-          return `${name} set to ${newValues[prop]}.`;
-        }
-        else if (newValues[prop] === oldValues[prop]) {
-          return `${name} unchanged at ${newValues[prop]}.`;
-        }
-        return `${name} changed from ${oldValues[prop]} to ${newValues[prop]}.`;
-      }).join(' ');
-      return [
-        `Done! ${summary}`,
-        `View your expertise list with \`${this.command} me\`.`,
-      ];
-    })
-    // Success! Print all cached output + final message.
-    .then(message => [output, message])
     // Error! Print all cached output + error message + usage info, or re-throw.
     .catch(error => {
       if (error.abortData) {
