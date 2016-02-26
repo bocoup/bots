@@ -29,10 +29,11 @@ function usage() {
 }
 
 export function handler(meta, subcommand, ...args) {
-  const {channel, user, command} = meta;
+  const {channel, postMessage, user, command} = meta;
   const cmdObj = commands[subcommand];
   const thisObj = {
     channel,
+    postMessage,
     user,
     command,
     subcommand,
@@ -292,7 +293,7 @@ function updateExpertise({user, expertise, newValues}) {
 }
 
 function updateExpertiseDialog({
-  channel,
+  postMessage,
   user,
   expertise,
   command,
@@ -306,7 +307,7 @@ function updateExpertiseDialog({
   })
   .then(({scales, oldValues: [oldValues]}) => {
     const dialog = new Dialog({
-      channel,
+      postMessage,
       timeout: 60,
       onTimeout: `Timed out, please type \`${command}\` to try again.`,
       onCancel: () => {
@@ -397,7 +398,7 @@ function updateMissing({postMessage, user}) {
         `Let's update *${expertise.expertise}*.`,
       ];
       return updateExpertiseDialog({
-        channel,
+        postMessage,
         user,
         expertise,
         command: 'expertise update missing',
@@ -424,7 +425,7 @@ addCommand('update', {
 
     if (search === 'missing') {
       return updateMissing({
-        channel: this.channel,
+        postMessage: this.postMessage,
         user,
       });
     }
@@ -453,7 +454,7 @@ addCommand('update', {
       }
       const command = `expertise update ${search.toLowerCase()}`;
       return updateExpertiseDialog({
-        channel: this.channel,
+        postMessage: this.postMessage,
         user,
         expertise: match,
         command,

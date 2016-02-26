@@ -1,8 +1,8 @@
 import Promise from 'bluebird';
 
 export default class Dialog {
-  constructor({channel, timeout, onTimeout, onCancel}) {
-    this.channel = channel;
+  constructor({postMessage, timeout, onTimeout, onCancel}) {
+    this.postMessage = postMessage;
     this.timeout = timeout || 30;
     this.onTimeout = onTimeout || 'Dialog timeout, please try again.';
     this.onCancel = onCancel || 'Dialog canceled.';
@@ -33,7 +33,7 @@ export default class Dialog {
 
   cancel() {
     this._stop();
-    this.channel.send(this._fnOrValue(this.onTimeout));
+    this.postMessage(this._fnOrValue(this.onTimeout));
   }
 
   handleMessage(data) {
