@@ -6,30 +6,8 @@ import {parseArgs} from '../../lib/args';
 import {query} from '../../lib/db';
 import Dialog from '../../lib/dialog';
 
-// https://github.com/bocoup/bocoup-meta/issues/243#issuecomment-187268880
-const EXPERIENCE = [
-  'I have no experience with this.',
-  'I have some experience but I am not yet confident with this.',
-  'I have some experience and feel confident with this.',
-  'I have lots of experience and can teach others this.',
-  'I would feel comfortable having a team of people rely on me for this.',
-];
-const INTEREST = [
-  'I really dislike this. Please do not ask me to use this!',
-  'I would like to avoid this if possible.',
-  'I have no feelings for or against this.',
-  'I would like to use this.',
-  'I would love to use this. Please ask me to use this!',
-];
-
 const description = {
   brief: 'Show your expertise.',
-  full: [
-    '*Interest:*',
-    INTEREST.map((s, i) => `*${i + 1}.* ${s}`),
-    '*Experience:*',
-    EXPERIENCE.map((s, i) => `*${i + 1}.* ${s}`),
-  ],
 };
 
 // ================================
@@ -163,6 +141,17 @@ function findExpertiseAndHandleErrors(search) {
   });
 }
 
+function getIntExpScales() {
+  return query('expertise_scales').then(results => results.reduce((result, {type, id, name}) => {
+    if (!result[type]) {
+      result[type] = {};
+    }
+    result[type][id] = name;
+    return result;
+  }, {}));
+}
+
+
 // ============
 // SUB-COMMANDS
 // ============
@@ -254,6 +243,21 @@ addCommand('find', {
   },
 });
 
+addCommand('scales', {
+  description: 'List interest and experience scales.',
+  fn() {
+    return getIntExpScales().then(({interest, experience}) => {
+      const list = o => Object.keys(o).map(k => `> *${k}.* ${o[k]}`);
+      return [
+        '*Interest:*',
+        list(interest),
+        '*Experience:*',
+        list(experience),
+      ];
+    });
+  },
+});
+
 const intExpProps = ['interest', 'experience'];
 
 function updateExpertise({user, expertise, newValues}) {
@@ -296,8 +300,11 @@ function updateExpertiseDialog({
   done = val => val,
 }) {
   const expertiseName = `*${expertise.expertise}*`;
-  return query('expertise_by_bocouper_id', user, expertise.id)
-  .then(([oldValues]) => {
+  return Promise.props({
+    oldValues: query('expertise_by_bocouper_id', user, expertise.id),
+    scales: getIntExpScales(),
+  })
+  .then(({scales, oldValues: [oldValues]}) => {
     const dialog = new Dialog({
       channel,
       timeout: 60,
@@ -312,14 +319,14 @@ function updateExpertiseDialog({
       return dialog.questions({
         oneTimeHeader: _oneTimeHeader,
         question: ({exit, timeout}) => `Please choose your interest level for ${expertiseName}:`,
-        choices: INTEREST,
+        choices: scales.interest,
         onMatch: match => {
           newValues.interest = match;
           return `_You selected *${newValues.interest}* for interest, thanks!_`;
         },
       }, {
         question: ({exit, timeout}) => `Please choose your experience level for ${expertiseName}:`,
-        choices: EXPERIENCE,
+        choices: scales.experience,
         onMatch: match => {
           newValues.experience = match;
           return `_You selected *${newValues.experience}* for experience, thanks!_`;
@@ -336,8 +343,8 @@ function updateExpertiseDialog({
           return heredoc.trim.unindent`
             You've entered the following for ${expertiseName}. Is this ok?
 
-            > Interest: *${INTEREST[newValues.interest - 1]}* (${newValues.interest})
-            > Experience: *${EXPERIENCE[newValues.experience - 1]}* (${newValues.experience})
+            > Interest: *${scales.interest[newValues.interest]}* (${newValues.interest})
+            > Experience: *${scales.experience[newValues.experience]}* (${newValues.experience})
             ${reason}
           `;
         },
@@ -362,12 +369,13 @@ function updateExpertiseDialog({
       oneTimeHeader,
       lastUpdated,
       '',
-      `> ${expertise.description}`,
+      `> ${expertiseName} / *${expertise.area}* / *${expertise.type}*`,
+      `${expertise.description.replace(/^/gm, '> ')}`,
     ]);
   });
 }
 
-function updateMissing({channel, user}) {
+function updateMissing({postMessage, user}) {
   function ask(header) {
     return query('expertise_missing_by_bocouper', user)
     .then(missing => {
