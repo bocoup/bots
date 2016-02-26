@@ -82,12 +82,9 @@ export default class Dialog {
   }) {
     let keys;
     if (Array.isArray(choices)) {
-      const tmp = {};
-      keys = choices.map((choice, i) => {
-        tmp[++i] = choice;
-        return i;
-      });
-      choices = tmp;
+      // Change from 0-indexed to 1-indexed. It makes the choices look prettier.
+      keys = choices.map((c, i) => i + 1);
+      choices = [null].concat(choices);
     }
     else {
       keys = Object.keys(choices);
