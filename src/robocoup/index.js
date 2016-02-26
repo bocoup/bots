@@ -34,7 +34,6 @@ bot.on('open', function() {
 });
 
 bot.on('message', function(message) {
-  const user = this.getUserByID(message.user);
   const channel = this.getChannelGroupOrDMByID(message.channel);
   const postMessage = text => channel.postMessage({
     username: 'Robocoup',
@@ -54,6 +53,7 @@ bot.on('message', function(message) {
   if (message.subtype || message.attachments) {
     return;
   }
+  const user = this.getUserByID(message.user);
 
   // Flatten result array and remove `null` items, then join on newline.
   const normalizeResult = R.pipe(
