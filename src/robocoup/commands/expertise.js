@@ -377,7 +377,9 @@ function updateExpertiseDialog({
 }
 
 function updateMissing({postMessage, user}) {
+  let n = 0;
   function ask(header) {
+    n++;
     return query('expertise_missing_by_bocouper', user)
     .then(missing => {
       if (missing.length === 0) {
@@ -387,15 +389,14 @@ function updateMissing({postMessage, user}) {
         `;
       }
       const expertise = missing[0];
-      const num = missing.length === 1 ? '' : ` ${missing.length}`;
+      const identifier = missing.length === 1 ? 'it' : n === 1 ? 'the first' : 'the next';
+      const now = n > 1 ? ' now' : '';
       const oneTimeHeader = [
         ...(header ? [header, ''] : []),
         heredoc.trim.oneline`
-          You have no data for the following${num} expertise${missing.length === 1 ? '' : 's'}:
-          *${missing.map(m => m.expertise).join(', ')}*.
+          You${now} have no data for ${missing.length} expertise${missing.length === 1 ? '' : 's'}.
+          Let's update ${identifier}:
         `,
-        '',
-        `Let's update *${expertise.expertise}*.`,
       ];
       return updateExpertiseDialog({
         postMessage,
