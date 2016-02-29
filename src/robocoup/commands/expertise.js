@@ -371,7 +371,7 @@ function updateExpertiseDialog({
       lastUpdated,
       '',
       `> ${expertiseName} / *${expertise.area}* / *${expertise.type}*`,
-      `${expertise.description.replace(/^/gm, '> ')}`,
+      expertise.description && `${expertise.description.replace(/^/gm, '> ')}`,
     ]);
   });
 }
