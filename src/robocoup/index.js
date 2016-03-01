@@ -26,6 +26,28 @@ function log(command) {
   }).then();
 }
 
+function getPostMessage({channel, botname}) {
+  // Flatten result array and remove `null` items, then join on newline.
+  const normalizeResult = R.pipe(
+    R.flatten,
+    R.reject(R.isNil),
+    R.join('\n')
+  );
+  // Return a function that normalizes result (if necessary) and posts
+  // a message to the given channel as the bot.
+  return text => {
+    if (Array.isArray(text)) {
+      text = normalizeResult(text);
+    }
+    channel.postMessage({
+      username: botname,
+      text,
+      unfurl_links: false,
+      unfurl_media: false,
+    });
+  };
+}
+
 bot.on('open', function() {
   console.log(`Connected to ${this.team.name} as @${this.self.name}`);
   if (config.runJobs) {
@@ -35,12 +57,6 @@ bot.on('open', function() {
 
 bot.on('message', function(message) {
   const channel = this.getChannelGroupOrDMByID(message.channel);
-  const postMessage = text => channel.postMessage({
-    username: 'Robocoup',
-    text,
-    unfurl_links: false,
-    unfurl_media: false,
-  });
   // Ignore non-im messages or non-message messages.
   if (!channel.is_im || message.type !== 'message') {
     return;
@@ -55,12 +71,7 @@ bot.on('message', function(message) {
   }
   const user = this.getUserByID(message.user);
 
-  // Flatten result array and remove `null` items, then join on newline.
-  const normalizeResult = R.pipe(
-    R.flatten,
-    R.reject(R.isNil),
-    R.join('\n')
-  );
+  const postMessage = getPostMessage({channel, botname: 'Robocoup'});
   getConversation(channel).handleMessage({message, user}, () => {
     // Parse command and args out of message.
     const args = deparse(this, message.text).split(' ');
@@ -74,12 +85,7 @@ bot.on('message', function(message) {
     return handler({channel, postMessage, command, user}, ...args);
   })
   .tap(() => log(message.text))
-  .then(text => {
-    if (Array.isArray(text)) {
-      text = normalizeResult(text);
-    }
-    postMessage(text);
-  })
+  .then(postMessage)
   .catch(error => {
     postMessage(`An unexpected error occurred: \`${error.message}\``);
     console.error(error.stack);
