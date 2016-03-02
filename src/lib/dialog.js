@@ -34,10 +34,13 @@ export default class Dialog {
   }
 
   // Set the dialog's state to "not done" and start the timeout counter.
-  _start() {
+  _start(timeout) {
+    if (!timeout) {
+      timeout = this.timeout;
+    }
     this._stop();
     this._done = false;
-    this._timeoutId = setTimeout(() => this._timeout(), this.timeout * 1000);
+    this._timeoutId = setTimeout(() => this._timeout(), timeout * 1000);
   }
 
   // Timeout reached. Stop the dialog and complain about timing out.
@@ -82,11 +85,15 @@ export default class Dialog {
     question = `Type anything.`,
     prompt = ({exit, timeout}) => `_You have ${timeout} seconds to answer. Type *${exit}* to cancel._`,
     exit = 'exit',
+    timeout,
     onResponse,
   }) {
     // Set the dialog's state to "not done" and start the timeout counter.
-    this._start();
-    const context = Object.assign({exit}, this);
+    this._start(timeout);
+    const context = Object.assign({}, this, {exit});
+    if (timeout) {
+      context.timeout = timeout;
+    }
     // Register a handler to process the user response.
     this._handler = data => {
       const {message: {text}} = data;
@@ -113,6 +120,7 @@ export default class Dialog {
     choices,
     prompt,
     exit,
+    timeout,
     onMatch,
     onError = text => `_Sorry, but \`${text}\` is not a valid response. Please try again._`,
   }) {
@@ -134,6 +142,7 @@ export default class Dialog {
       ],
       prompt,
       exit,
+      timeout,
       onResponse: (text, data) => {
         const match = keys.find(k => String(k).toLowerCase() === text.toLowerCase());
         if (match) {

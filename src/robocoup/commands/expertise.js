@@ -334,6 +334,7 @@ function updateExpertiseDialog({
             newValues.reason = reason;
             return '_Noted!_';
           },
+          timeout: 120,
         },
         {
           question: ({exit, timeout}) => {
