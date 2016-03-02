@@ -10,12 +10,12 @@ export default class Conversation {
   }
   handleMessage(data, fn) {
     return Promise.try(() => {
-      return this.hasDialog() ? this.dialog.handleMessage(data) : fn(data);
+      return this.hasDialog() ? this.dialog.handleResponse(data) : fn(data);
     })
     .then(result => {
       if (result instanceof Dialog) {
         this.dialog = result;
-        result = result.message;
+        result = null;
       }
       return result;
     });
