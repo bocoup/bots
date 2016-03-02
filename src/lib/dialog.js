@@ -61,7 +61,9 @@ export default class Dialog {
     return result;
   }
 
-  // Just say the specified text.
+  // Just say the specified text. If followed by another message or question,
+  // should be chained like say(message).then(nextThing) to ensure the proper
+  // delay exists between messages.
   say(message) {
     // Handle {message: '...'} format
     if (message && message.message) {
@@ -70,7 +72,9 @@ export default class Dialog {
     if (message) {
       this.postMessage(this._fnOrValue(message, this));
     }
-    return this;
+    // Force a small delay after this so that any message or question following
+    // this one doesn't appear out of order.
+    return Promise.delay(100);
   }
 
   // Ask a question, await an arbitrary text answer.
@@ -135,8 +139,7 @@ export default class Dialog {
         if (match) {
           return onMatch(match, data);
         }
-        this.say(this._fnOrValue(onError, text, data));
-        return ask();
+        return this.say(this._fnOrValue(onError, text, data)).then(ask);
       },
     });
 
@@ -242,10 +245,8 @@ export default class Dialog {
         });
         return this[askMethod](options);
       }
-      // No response method, so just say the "question" then pause, slightly,
-      // before the next question to avoid Slack posting messages out of order.
-      this[askMethod](question);
-      return Promise.delay(100).then(next);
+      // No response method, so just say the message and move to the next.
+      return this[askMethod](question).then(next);
     };
 
     // Result might be a promise, so resolve it before anything else.
