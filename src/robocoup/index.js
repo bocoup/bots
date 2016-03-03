@@ -27,10 +27,11 @@ function log(command) {
 }
 
 function getPostMessage({channel, botname}) {
-  // Flatten result array and remove `null` items, then join on newline.
+  // Flatten result array and remove null, undefined or false items, then
+  // join on newline.
   const normalizeResult = R.pipe(
     R.flatten,
-    R.reject(R.isNil),
+    R.reject(s => R.isNil(s) || s === false),
     R.join('\n')
   );
   // Return a function that normalizes result (if necessary) and posts
