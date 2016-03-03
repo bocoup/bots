@@ -1,11 +1,21 @@
 import Promise from 'bluebird';
 
 export default class Dialog {
-  constructor({postMessage, timeout, onTimeout, onCancel, questions}) {
+  constructor({
+    postMessage,
+    timeout = 30,
+    onTimeout = 'Dialog timeout, please try again.',
+    onExit = 'Dialog canceled.',
+    exit = 'exit',
+    prompt = o => `_You have ${o.timeout} seconds to answer. Type *${o.exit}* to cancel._`,
+    questions,
+  }) {
     this.postMessage = postMessage;
-    this.timeout = timeout || 30;
-    this.onTimeout = onTimeout || 'Dialog timeout, please try again.';
-    this.onCancel = onCancel || 'Dialog canceled.';
+    this.timeout = timeout;
+    this.onTimeout = onTimeout;
+    this.onExit = onExit;
+    this.exit = exit;
+    this.prompt = prompt;
     // This property will be defined by the ask method and its wrapper methods.
     this._handler = null;
     if (questions) {
@@ -65,40 +75,37 @@ export default class Dialog {
   }
 
   // Just say the specified text. If followed by another message or question,
-  // should be chained like say(message).then(nextThing) to ensure the proper
-  // delay exists between messages.
+  // should be chained like say(message).then(nextThing) to prevent race
+  // conditions.
   say(message) {
     // Handle {message: '...'} format
     if (message && message.message) {
       message = message.message;
     }
-    if (message) {
-      this.postMessage(this._fnOrValue(message, this));
-    }
-    // Force a small delay after this so that any message or question following
-    // this one doesn't appear out of order.
-    return Promise.delay(100);
+    return this.postMessage(this._fnOrValue(message, this)).then(() => null);
   }
 
   // Ask a question, await an arbitrary text answer.
   ask({
     question = `Type anything.`,
-    prompt = ({exit, timeout}) => `_You have ${timeout} seconds to answer. Type *${exit}* to cancel._`,
-    exit = 'exit',
+    prompt,
+    exit,
     timeout,
     onResponse,
   }) {
     // Set the dialog's state to "not done" and start the timeout counter.
     this._start(timeout);
-    const context = Object.assign({}, this, {exit});
-    if (timeout) {
-      context.timeout = timeout;
-    }
+    const context = Object.assign({}, this);
+    // Override the value stored on "this" if specified.
+    if (exit) { context.exit = exit; }
+    if (timeout) { context.timeout = timeout; }
     // Register a handler to process the user response.
     this._handler = data => {
       const {message: {text}} = data;
-      if (text.toLowerCase() === exit.toLowerCase()) {
-        return this._fnOrValue(this.onCancel);
+      const exits = Array.isArray(context.exit) ? context.exit : [context.exit];
+      const match = exits.find(e => e.toLowerCase() === text.toLowerCase());
+      if (match) {
+        return this._fnOrValue(this.onExit, match.toLowerCase(), data);
       }
       return onResponse(text, data);
     };
@@ -106,7 +113,7 @@ export default class Dialog {
     this.say([
       this._fnOrValue(question, context),
       '',
-      this._fnOrValue(prompt, context),
+      this._fnOrValue(prompt || this.prompt, context),
     ]);
     return this;
   }
