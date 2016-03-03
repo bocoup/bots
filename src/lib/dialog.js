@@ -1,22 +1,30 @@
 import Promise from 'bluebird';
 
 export default class Dialog {
-  constructor({postMessage, timeout, onTimeout, onCancel}) {
+  constructor({postMessage, timeout, onTimeout, onCancel, questions}) {
     this.postMessage = postMessage;
     this.timeout = timeout || 30;
     this.onTimeout = onTimeout || 'Dialog timeout, please try again.';
     this.onCancel = onCancel || 'Dialog canceled.';
-    this._start();
+    // This property will be defined by the ask method and its wrapper methods.
+    this._handler = null;
+    if (questions) {
+      return this.questions(questions);
+    }
   }
 
+  // Is this dialog done?
   isDone() {
     return Boolean(this._done);
   }
 
+  // If a value is a function, invoke it and return its result, otherwise just
+  // return the value. Pass this / additional arguments into the function.
   _fnOrValue(val, ...args) {
-    return typeof val === 'function' ? val(...args) : val;
+    return typeof val === 'function' ? val.apply(this, args) : val;
   }
 
+  // Set the dialog's state to "done" and stop the timeout counter.
   _stop() {
     this._done = true;
     if (this._timeoutId) {
@@ -25,45 +33,81 @@ export default class Dialog {
     }
   }
 
-  _start() {
+  // Set the dialog's state to "not done" and start the timeout counter.
+  _start(timeout) {
+    if (!timeout) {
+      timeout = this.timeout;
+    }
     this._stop();
     this._done = false;
-    this._timeoutId = setTimeout(() => this.cancel(), this.timeout * 1000);
+    this._timeoutId = setTimeout(() => this._timeout(), timeout * 1000);
   }
 
-  cancel() {
+  // Timeout reached. Stop the dialog and complain about timing out.
+  _timeout() {
     this._stop();
-    this.postMessage(this._fnOrValue(this.onTimeout));
+    this.say(this.onTimeout);
   }
 
-  handleMessage(data) {
+  // Public API to the response handler registered by the ask method and its
+  // wrapper methods.
+  handleResponse(data) {
+    // Since an answer was received, stop the dialog / timeout counter.
     this._stop();
-    return this.handler(data);
+    if (!this._handler) {
+      throw new Error('No registered response handler. Was a question asked?');
+    }
+    // Actually process the message.
+    const result = this._handler(data);
+    // Ensure the dialog can only be used once.
+    this._handler = null;
+    return result;
   }
 
-  // Ask a question, get an arbitrary text answer.
+  // Just say the specified text. If followed by another message or question,
+  // should be chained like say(message).then(nextThing) to ensure the proper
+  // delay exists between messages.
+  say(message) {
+    // Handle {message: '...'} format
+    if (message && message.message) {
+      message = message.message;
+    }
+    if (message) {
+      this.postMessage(this._fnOrValue(message, this));
+    }
+    // Force a small delay after this so that any message or question following
+    // this one doesn't appear out of order.
+    return Promise.delay(100);
+  }
+
+  // Ask a question, await an arbitrary text answer.
   ask({
     question = `Type anything.`,
     prompt = ({exit, timeout}) => `_You have ${timeout} seconds to answer. Type *${exit}* to cancel._`,
     exit = 'exit',
+    timeout,
     onResponse,
-    oneTimeHeader,
   }) {
-    this._start();
-    const context = Object.assign({exit}, this);
-    this.message = [
-      ...(oneTimeHeader ? [this._fnOrValue(oneTimeHeader, context), ''] : []),
-      this._fnOrValue(question, context),
-      '',
-      this._fnOrValue(prompt, context),
-    ];
-    this.handler = data => {
+    // Set the dialog's state to "not done" and start the timeout counter.
+    this._start(timeout);
+    const context = Object.assign({}, this, {exit});
+    if (timeout) {
+      context.timeout = timeout;
+    }
+    // Register a handler to process the user response.
+    this._handler = data => {
       const {message: {text}} = data;
       if (text.toLowerCase() === exit.toLowerCase()) {
         return this._fnOrValue(this.onCancel);
       }
       return onResponse(text, data);
     };
+    // Display the question message.
+    this.say([
+      this._fnOrValue(question, context),
+      '',
+      this._fnOrValue(prompt, context),
+    ]);
     return this;
   }
 
@@ -72,13 +116,13 @@ export default class Dialog {
   // invalid choice is entered, the question will be re-displayed. Note that
   // array indices are displayed (and passed into onMatch) starting at 1.
   choose({
-    choices,
     question = `Choose one of the following:`,
-    prompt = null,
-    exit = null,
+    choices,
+    prompt,
+    exit,
+    timeout,
     onMatch,
     onError = text => `_Sorry, but \`${text}\` is not a valid response. Please try again._`,
-    oneTimeHeader,
   }) {
     let keys;
     if (Array.isArray(choices)) {
@@ -89,109 +133,135 @@ export default class Dialog {
     else {
       keys = Object.keys(choices);
     }
-    const _question = context => [
-      this._fnOrValue(question, context),
-      '',
-      ...keys.map(k => `[*${k}*] ${choices[k]}`),
-    ];
-    const onResponse = (text, data) => {
-      const match = keys.find(k => String(k).toLowerCase() === text.toLowerCase());
-      if (match) {
-        return onMatch(match, data);
-      }
-      return this.choose({
-        choices,
-        question,
-        prompt,
-        exit,
-        onMatch,
-        onError,
-        oneTimeHeader: this._fnOrValue(onError, text, data),
-      });
-    };
-    const options = {
-      question: _question,
-      onResponse,
-      oneTimeHeader,
-    };
-    if (prompt) { options.prompt = prompt; }
-    if (exit) { options.exit = exit; }
-    return this.ask(options);
+
+    const ask = () => this.ask({
+      question: context => [
+        this._fnOrValue(question, context),
+        '',
+        ...keys.map(k => `[*${k}*] ${choices[k]}`),
+      ],
+      prompt,
+      exit,
+      timeout,
+      onResponse: (text, data) => {
+        const match = keys.find(k => String(k).toLowerCase() === text.toLowerCase());
+        if (match) {
+          return onMatch(match, data);
+        }
+        return this.say(this._fnOrValue(onError, text, data)).then(ask);
+      },
+    });
+
+    return ask();
   }
 
-  // Wrapper around single-question methods. Pass in a single question, an
-  // array of questions, or any number of question arguments.
+  // Wrapper around single-question methods. Pass in an array of questions or
+  // one or more question arguments.
   //
-  // Questions may be a question object, a function that returns a question
-  // object, or a function that returns a promise that resolves to a question
-  // object.
+  // Each "question" may be:
+  // * A String message or message object, to be passed to this.say()
+  // * A question object, to be passed to this.ask() or this.choose()
+  // * An array of question objects or functions
+  // * A promise that returns any of the preceding
+  // * A function that returns any of the preceding
+  // * A Dialog instance (in which case, the current list of questions will
+  //   be replaced with the new dialog)
   //
-  // Response handlers may return a string to appear as the oneTimeHeader for
-  // the next question, or the final text after all questions. Alternately,
-  // response handlers may return a question object or array of question objects
-  // or a promise that resolves to either.
+  // Additionally, response handler methods may return any of the preceding,
+  // except for the function. It's assumed that any logic can be executed in
+  // the response handler method.
+  //
+  // Message objects look like:
+  // * {message: String|Array}
+  //
+  // Question objects look like:
+  // * {question: String|Array, onResponse: Function, ...}
+  // * {question: String|Array, choices: Object|Array, onMatch: Function, ...}
+  //
   questions(...args) {
     // Use the first argument if it's an array, otherwise use all arguments.
     const questions = Array.isArray(args[0]) ? Array.from(args[0]) : args;
 
-    // Determine if the given value is a "question" object. This could perhaps
-    // be more robust.
-    const isQuestion = q => q && q.question;
-
-    // Result might be a promise, so resolve it before anything else.
-    const next = _result => Promise.resolve(_result)
-    .then(result => {
-      // If result is an array of questions or a single question, add them/it
-      // to the beginning of the list.
-      if (Array.isArray(result) && result.every(isQuestion)) {
-        questions.unshift(...result);
-        result = null;
+    // Determine if the given value is a "question" object or a function that
+    // could return a question object. This could perhaps be more robust.
+    const isMessage = q => typeof q === 'string' || q && q.message;
+    const isQuestion = q => isMessage(q) || q && q.question;
+    const isQuestionOrFunction = q => isQuestion(q) || typeof q === 'function';
+    // Decide which method to call, based on the shape of the question object.
+    const getQuestionMethods = q => {
+      let askMethod, responseMethod;
+      if (isMessage(q)) {
+        askMethod = 'say';
       }
-      else if (isQuestion(result)) {
-        questions.unshift(result);
-        result = null;
-      }
-      // The next "question" might be a question object, a function that returns
-      // a question object, a promise that resolves to a question object, or a
-      // function that returns a promise that resolves to a question object.
-      return Promise.props({
-        question: questions.length > 0 && this._fnOrValue(questions.shift()),
-        result,
-      });
-    })
-    .then(({question, result}) => {
-      // There's no question. If it's because the question was empty or a
-      // question promise resolved to nothing, get the next question. If it's
-      // because there were no more questions, just return the result.
-      if (!question) {
-        return questions.length === 0 ? result : next(result);
-      }
-      // Guess which method to call, based on the shape of the question object.
-      let apiMethod, responseMethod;
-      if (question.choices) {
+      else if (q.choices) {
+        askMethod = 'choose';
         responseMethod = 'onMatch';
-        apiMethod = 'choose';
       }
       else {
+        askMethod = 'ask';
         responseMethod = 'onResponse';
-        apiMethod = 'ask';
       }
-      const options = Object.assign({}, question);
-      // Pass any "result" the previous question yielded into the next question
-      // as a oneTimeHeader.
-      if (result) {
-        options.oneTimeHeader = result;
-      }
-      // Ensure the next question is shown after the current one is completed.
-      // Pass any result (or promised result) from the current question's
-      // response handler into the next question.
-      const _responseMethod = question[responseMethod];
-      options[responseMethod] = (..._args) => Promise.resolve(_responseMethod(..._args)).then(next);
-      // Create and return the dialog.
-      return this[apiMethod](options);
-    });
+      return {askMethod, responseMethod};
+    };
 
-    // Start the question chain.
+    /* eslint no-use-before-define: 0 */
+
+    // If a previous question response handler returned a dialog, return it
+    // outright. Otherwise process it as a question, array of questions, etc.
+    const handleDialog = result => {
+      if (result instanceof Dialog) {
+        return result;
+      }
+      return Promise.resolve(result)
+      .then(handleResult)
+      .then(handleQuestion);
+    };
+
+    // If a previous question response handler returned a question or array of
+    // questions, add them to the front of the question array, otherwise error.
+    const handleResult = result => {
+      if (Array.isArray(result) && result.every(isQuestionOrFunction)) {
+        questions.unshift(...result);
+      }
+      else if (isQuestionOrFunction(result)) {
+        questions.unshift(result);
+      }
+      else if (result) {
+        throw new Error(`Unknown question format: ${JSON.stringify(result)}`);
+      }
+      // Get the next question, if one exists.
+      return this._fnOrValue(questions.shift());
+    };
+
+    // Process the next question.
+    const handleQuestion = question => {
+      // If there is no question, either show the next one or end.
+      if (!question) {
+        return questions.length > 0 ? next() : null;
+      }
+      // If the question isn't a question, start over.
+      else if (!isQuestion(question)) {
+        return next(question);
+      }
+
+      const {askMethod, responseMethod} = getQuestionMethods(question);
+      // Pass any result (or promised result) from the question response
+      // handler forward, to be handled.
+      if (responseMethod) {
+        const _responseMethod = question[responseMethod];
+        const options = Object.assign({}, question, {
+          [responseMethod]: (...a) => Promise.resolve(_responseMethod(...a)).then(next),
+        });
+        return this[askMethod](options);
+      }
+      // No response method, so just say the message and move to the next.
+      return this[askMethod](question).then(next);
+    };
+
+    // Result might be a promise, so resolve it before anything else.
+    const next = result => Promise.resolve(result).then(handleDialog);
+
+    // Start with the questions!
     return next();
   }
 }

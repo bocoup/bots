@@ -283,7 +283,7 @@ function updateExpertise({user, expertise, newValues}) {
       if (!oldValues) {
         return `${name} set to ${newValues[prop]}.`;
       }
-      else if (newValues[prop] === oldValues[prop]) {
+      else if (String(newValues[prop]) === String(oldValues[prop])) {
         return `${name} unchanged at ${newValues[prop]}.`;
       }
       return `${name} changed from ${oldValues[prop]} to ${newValues[prop]}.`;
@@ -298,7 +298,7 @@ function updateExpertiseDialog({
   expertise,
   command,
   oneTimeHeader = null,
-  done = val => val,
+  done,
 }) {
   const expertiseName = `*${expertise.expertise}*`;
   return Promise.props({
@@ -306,6 +306,67 @@ function updateExpertiseDialog({
     scales: getIntExpScales(),
   })
   .then(({scales, oldValues: [oldValues]}) => {
+    function getQuestions(message) {
+      const newValues = {};
+      return [
+        {
+          message,
+        },
+        {
+          question: ({exit, timeout}) => `Please choose your interest level for ${expertiseName}:`,
+          choices: scales.interest,
+          onMatch: match => {
+            newValues.interest = match;
+            return `_You selected *${newValues.interest}* for interest, thanks!_`;
+          },
+        },
+        {
+          question: ({exit, timeout}) => `Please choose your experience level for ${expertiseName}:`,
+          choices: scales.experience,
+          onMatch: match => {
+            newValues.experience = match;
+            return `_You selected *${newValues.experience}* for experience, thanks!_`;
+          },
+        },
+        () => oldValues && {
+          question: ({exit, timeout}) => `Why has your experience/interest changed for ${expertiseName}?`,
+          onResponse: reason => {
+            newValues.reason = reason;
+            return '_Noted!_';
+          },
+          timeout: 120,
+        },
+        {
+          question: ({exit, timeout}) => {
+            const reason = 'reason' in newValues ? `> Reason: *${newValues.reason}*\n` : '';
+            return heredoc.trim.unindent`
+              You've entered the following for ${expertiseName}. Is this ok?
+
+              > Interest: *${scales.interest[newValues.interest]}* (${newValues.interest})
+              > Experience: *${scales.experience[newValues.experience]}* (${newValues.experience})
+              ${reason}
+            `;
+          },
+          choices: [
+            `Save these changes.`,
+            `No, re-choose interest and experience for ${expertiseName}.`,
+          ],
+          onMatch(match) {
+            if (match === 2) {
+              return getQuestions('_Starting over._');
+            }
+            return updateExpertise({user, expertise, newValues}).then(done);
+          },
+        },
+      ];
+    }
+
+    let lastUpdated;
+    if (oldValues) {
+      const formatted = moment.duration(-oldValues.seconds_since_last_update, 'seconds').humanize(true);
+      lastUpdated = `_You last updated this expertise *${formatted}*._`;
+    }
+
     const dialog = new Dialog({
       postMessage,
       timeout: 60,
@@ -315,69 +376,20 @@ function updateExpertiseDialog({
       },
     });
 
-    function ask(_oneTimeHeader) {
-      const newValues = {};
-      return dialog.questions({
-        oneTimeHeader: _oneTimeHeader,
-        question: ({exit, timeout}) => `Please choose your interest level for ${expertiseName}:`,
-        choices: scales.interest,
-        onMatch: match => {
-          newValues.interest = match;
-          return `_You selected *${newValues.interest}* for interest, thanks!_`;
-        },
-      }, {
-        question: ({exit, timeout}) => `Please choose your experience level for ${expertiseName}:`,
-        choices: scales.experience,
-        onMatch: match => {
-          newValues.experience = match;
-          return `_You selected *${newValues.experience}* for experience, thanks!_`;
-        },
-      }, () => oldValues && {
-        question: ({exit, timeout}) => `Why has your experience/interest changed for ${expertiseName}?`,
-        onResponse: reason => {
-          newValues.reason = reason;
-          return '_Noted!_';
-        },
-      }, {
-        question: ({exit, timeout}) => {
-          const reason = 'reason' in newValues ? `> Reason: *${newValues.reason}*\n` : '';
-          return heredoc.trim.unindent`
-            You've entered the following for ${expertiseName}. Is this ok?
-
-            > Interest: *${scales.interest[newValues.interest]}* (${newValues.interest})
-            > Experience: *${scales.experience[newValues.experience]}* (${newValues.experience})
-            ${reason}
-          `;
-        },
-        choices: [
-          `Save these changes.`,
-          `No, re-choose interest and experience for ${expertiseName}.`,
-        ],
-        onMatch(match) {
-          if (match === 2) {
-            return ask();
-          }
-          return updateExpertise({user, expertise, newValues}).then(done);
-        },
-      });
-    }
-    let lastUpdated;
-    if (oldValues) {
-      const formatted = moment.duration(-oldValues.seconds_since_last_update, 'seconds').humanize(true);
-      lastUpdated = `_You last updated this expertise *${formatted}*._`;
-    }
-    return ask([
+    return dialog.questions(getQuestions([
       oneTimeHeader,
       lastUpdated,
       '',
       `> ${expertiseName} / *${expertise.area}* / *${expertise.type}*`,
       expertise.description && `${expertise.description.replace(/^/gm, '> ')}`,
-    ]);
+    ]));
   });
 }
 
 function updateMissing({postMessage, user}) {
+  let n = 0;
   function ask(header) {
+    n++;
     return query('expertise_missing_by_bocouper', user)
     .then(missing => {
       if (missing.length === 0) {
@@ -387,15 +399,14 @@ function updateMissing({postMessage, user}) {
         `;
       }
       const expertise = missing[0];
-      const num = missing.length === 1 ? '' : ` ${missing.length}`;
+      const identifier = missing.length === 1 ? 'it' : n === 1 ? 'the first' : 'the next';
+      const now = n > 1 ? ' now' : '';
       const oneTimeHeader = [
         ...(header ? [header, ''] : []),
         heredoc.trim.oneline`
-          You have no data for the following${num} expertise${missing.length === 1 ? '' : 's'}:
-          *${missing.map(m => m.expertise).join(', ')}*.
+          You${now} have no data for ${missing.length} expertise${missing.length === 1 ? '' : 's'}.
+          Let's update ${identifier}:
         `,
-        '',
-        `Let's update *${expertise.expertise}*.`,
       ];
       return updateExpertiseDialog({
         postMessage,
@@ -459,7 +470,7 @@ addCommand('update', {
         expertise: match,
         command,
         oneTimeHeader: output.splice(0, output.length),
-        done,
+        done: m => ({message: done(m)}),
       });
     })
     // Error! Print all cached output + error message + usage info, or re-throw.
