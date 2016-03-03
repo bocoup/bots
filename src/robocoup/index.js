@@ -27,10 +27,11 @@ function log(command) {
 }
 
 function getPostMessage({channel, botname}) {
-  // Flatten result array and remove `null` items, then join on newline.
+  // Flatten result array and remove null, undefined or false items, then
+  // join on newline.
   const normalizeResult = R.pipe(
     R.flatten,
-    R.reject(R.isNil),
+    R.reject(s => R.isNil(s) || s === false),
     R.join('\n')
   );
   // Return a function that normalizes result (if necessary) and posts
@@ -39,14 +40,32 @@ function getPostMessage({channel, botname}) {
     if (Array.isArray(text)) {
       text = normalizeResult(text);
     }
-    if (text) {
+    if (!text) {
+      return Promise.resolve();
+    }
+    // Return a promise that resolves when channel.postMessage gets a response.
+    // I have no idea why it doesn't just do this!
+    return new Promise((resolve, reject) => {
+      // Override the built-in method that gets called on postMessage response.
+      channel._onPostMessage = data => {
+        // Remove the override, and call the original method.
+        delete channel._onPostMessage;
+        channel._onPostMessage(data);
+        // Resolve or reject as-appropriate.
+        if (data.ok) {
+          resolve(data);
+        }
+        else {
+          reject(data);
+        }
+      };
       channel.postMessage({
         username: botname,
         text,
         unfurl_links: false,
         unfurl_media: false,
       });
-    }
+    });
   };
 }
 

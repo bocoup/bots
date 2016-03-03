@@ -1,11 +1,21 @@
 import Promise from 'bluebird';
 
 export default class Dialog {
-  constructor({postMessage, timeout, onTimeout, onCancel, questions}) {
+  constructor({
+    postMessage,
+    timeout = 30,
+    onTimeout = 'Dialog timeout, please try again.',
+    onExit = 'Dialog canceled.',
+    exit = 'exit',
+    prompt = o => `_You have ${o.timeout} seconds to answer. Type *${o.exit}* to cancel._`,
+    questions,
+  }) {
     this.postMessage = postMessage;
-    this.timeout = timeout || 30;
-    this.onTimeout = onTimeout || 'Dialog timeout, please try again.';
-    this.onCancel = onCancel || 'Dialog canceled.';
+    this.timeout = timeout;
+    this.onTimeout = onTimeout;
+    this.onExit = onExit;
+    this.exit = exit;
+    this.prompt = prompt;
     // This property will be defined by the ask method and its wrapper methods.
     this._handler = null;
     if (questions) {
@@ -65,40 +75,37 @@ export default class Dialog {
   }
 
   // Just say the specified text. If followed by another message or question,
-  // should be chained like say(message).then(nextThing) to ensure the proper
-  // delay exists between messages.
+  // should be chained like say(message).then(nextThing) to prevent race
+  // conditions.
   say(message) {
     // Handle {message: '...'} format
     if (message && message.message) {
       message = message.message;
     }
-    if (message) {
-      this.postMessage(this._fnOrValue(message, this));
-    }
-    // Force a small delay after this so that any message or question following
-    // this one doesn't appear out of order.
-    return Promise.delay(100);
+    return this.postMessage(this._fnOrValue(message, this)).then(() => null);
   }
 
   // Ask a question, await an arbitrary text answer.
   ask({
     question = `Type anything.`,
-    prompt = ({exit, timeout}) => `_You have ${timeout} seconds to answer. Type *${exit}* to cancel._`,
-    exit = 'exit',
+    prompt,
+    exit,
     timeout,
     onResponse,
   }) {
     // Set the dialog's state to "not done" and start the timeout counter.
     this._start(timeout);
-    const context = Object.assign({}, this, {exit});
-    if (timeout) {
-      context.timeout = timeout;
-    }
+    const context = Object.assign({}, this);
+    // Override the value stored on "this" if specified.
+    if (exit) { context.exit = exit; }
+    if (timeout) { context.timeout = timeout; }
     // Register a handler to process the user response.
     this._handler = data => {
       const {message: {text}} = data;
-      if (text.toLowerCase() === exit.toLowerCase()) {
-        return this._fnOrValue(this.onCancel);
+      const exits = Array.isArray(context.exit) ? context.exit : [context.exit];
+      const match = exits.find(e => e.toLowerCase() === text.toLowerCase());
+      if (match) {
+        return this._fnOrValue(this.onExit, match.toLowerCase(), data);
       }
       return onResponse(text, data);
     };
@@ -106,7 +113,7 @@ export default class Dialog {
     this.say([
       this._fnOrValue(question, context),
       '',
-      this._fnOrValue(prompt, context),
+      this._fnOrValue(prompt || this.prompt, context),
     ]);
     return this;
   }
@@ -155,6 +162,34 @@ export default class Dialog {
     return ask();
   }
 
+  // Determine if the given value is a "question" object or a function that
+  // could return a question object. This could perhaps be more robust.
+  isMessage(q) {
+    return typeof q === 'string' || q && q.message;
+  }
+  isQuestion(q) {
+    return this.isMessage(q) || q && q.question;
+  }
+  isQuestionOrFunction(q) {
+    return this.isQuestion(q) || typeof q === 'function';
+  }
+  // Decide which method to call, based on the shape of the question object.
+  getQuestionMethods(q) {
+    let askMethod, responseMethod;
+    if (this.isMessage(q)) {
+      askMethod = 'say';
+    }
+    else if (q.choices) {
+      askMethod = 'choose';
+      responseMethod = 'onMatch';
+    }
+    else {
+      askMethod = 'ask';
+      responseMethod = 'onResponse';
+    }
+    return {askMethod, responseMethod};
+  }
+
   // Wrapper around single-question methods. Pass in an array of questions or
   // one or more question arguments.
   //
@@ -182,28 +217,6 @@ export default class Dialog {
     // Use the first argument if it's an array, otherwise use all arguments.
     const questions = Array.isArray(args[0]) ? Array.from(args[0]) : args;
 
-    // Determine if the given value is a "question" object or a function that
-    // could return a question object. This could perhaps be more robust.
-    const isMessage = q => typeof q === 'string' || q && q.message;
-    const isQuestion = q => isMessage(q) || q && q.question;
-    const isQuestionOrFunction = q => isQuestion(q) || typeof q === 'function';
-    // Decide which method to call, based on the shape of the question object.
-    const getQuestionMethods = q => {
-      let askMethod, responseMethod;
-      if (isMessage(q)) {
-        askMethod = 'say';
-      }
-      else if (q.choices) {
-        askMethod = 'choose';
-        responseMethod = 'onMatch';
-      }
-      else {
-        askMethod = 'ask';
-        responseMethod = 'onResponse';
-      }
-      return {askMethod, responseMethod};
-    };
-
     /* eslint no-use-before-define: 0 */
 
     // If a previous question response handler returned a dialog, return it
@@ -220,10 +233,10 @@ export default class Dialog {
     // If a previous question response handler returned a question or array of
     // questions, add them to the front of the question array, otherwise error.
     const handleResult = result => {
-      if (Array.isArray(result) && result.every(isQuestionOrFunction)) {
+      if (Array.isArray(result) && result.every(this.isQuestionOrFunction, this)) {
         questions.unshift(...result);
       }
-      else if (isQuestionOrFunction(result)) {
+      else if (this.isQuestionOrFunction(result)) {
         questions.unshift(result);
       }
       else if (result) {
@@ -240,11 +253,11 @@ export default class Dialog {
         return questions.length > 0 ? next() : null;
       }
       // If the question isn't a question, start over.
-      else if (!isQuestion(question)) {
+      else if (!this.isQuestion(question)) {
         return next(question);
       }
 
-      const {askMethod, responseMethod} = getQuestionMethods(question);
+      const {askMethod, responseMethod} = this.getQuestionMethods(question);
       // Pass any result (or promised result) from the question response
       // handler forward, to be handled.
       if (responseMethod) {

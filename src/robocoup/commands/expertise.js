@@ -288,7 +288,7 @@ function updateExpertise({user, expertise, newValues}) {
       }
       return `${name} changed from ${oldValues[prop]} to ${newValues[prop]}.`;
     }).join(' ');
-    return `Expertise for *${expertise.expertise}* updated: ${summary}`;
+    return `_Expertise for *${expertise.expertise}* updated: ${summary}_`;
   });
 }
 
@@ -298,6 +298,7 @@ function updateExpertiseDialog({
   expertise,
   command,
   oneTimeHeader = null,
+  skippable = false,
   done,
 }) {
   const expertiseName = `*${expertise.expertise}*`;
@@ -355,7 +356,10 @@ function updateExpertiseDialog({
             if (match === 2) {
               return getQuestions('_Starting over._');
             }
-            return updateExpertise({user, expertise, newValues}).then(done);
+            return updateExpertise({user, expertise, newValues}).then(done)
+            // Ensure that the very last "message" is treated as a message and
+            // not as an array of questions.
+            .then(d => d instanceof Dialog ? d : {message: d});
           },
         },
       ];
@@ -371,7 +375,15 @@ function updateExpertiseDialog({
       postMessage,
       timeout: 60,
       onTimeout: `Timed out, please type \`${command}\` to try again.`,
-      onCancel: () => {
+      prompt: ({timeout, exit: [exit, skip]}) => {
+        const exitSkip = skippable ? `Type *${skip}* to skip, or *${exit}* to cancel.` : `Type *${exit}* to cancel.`;
+        return `_You have ${timeout} seconds to answer. ${exitSkip}_`;
+      },
+      exit: skippable ? ['exit', 'skip'] : ['exit'],
+      onExit: match => {
+        if (match === 'skip') {
+          return done(`_Skipping ${expertiseName} for now!_`, true);
+        }
         return `Canceled, please type \`${command}\` to try again.`;
       },
     });
@@ -387,26 +399,30 @@ function updateExpertiseDialog({
 }
 
 function updateMissing({postMessage, user}) {
-  let n = 0;
+  let i = 0;
+  const skipped = [];
+  const expertiseCount = n => `${n.length} expertise${n.length === 1 ? '' : 's'}`;
   function ask(header) {
-    n++;
+    i++;
     return query('expertise_missing_by_bocouper', user)
     .then(missing => {
-      if (missing.length === 0) {
-        return heredoc.trim.unindent`
-          You have no outstanding expertise data.
-          View your expertise list with \`expertise me\`.
-        `;
+      const notSkipped = missing.filter(({id}) => skipped.indexOf(id) === -1);
+      if (notSkipped.length === 0) {
+        const done = i > 1 ? 'Done. ' : '';
+        return [
+          header,
+          missing.length === 0 ? `${done}You have no outstanding expertise data.` :
+            `${done}You still have outstanding expertise data for ${expertiseCount(missing)}.`,
+          'View your expertise list with `expertise me`.',
+        ];
       }
-      const expertise = missing[0];
-      const identifier = missing.length === 1 ? 'it' : n === 1 ? 'the first' : 'the next';
-      const now = n > 1 ? ' now' : '';
+      const expertise = notSkipped[0];
+      const identifier = notSkipped.length === 1 ? 'it' : i === 1 ? 'the first' : 'the next';
+      const now = i > 1 ? ' now' : '';
+      const skipTxt = skipped.length > 0 ? ` (you've skipped ${skipped.length})` : '';
       const oneTimeHeader = [
         ...(header ? [header, ''] : []),
-        heredoc.trim.oneline`
-          You${now} have no data for ${missing.length} expertise${missing.length === 1 ? '' : 's'}.
-          Let's update ${identifier}:
-        `,
+        `I${now} need data for ${expertiseCount(notSkipped)}${skipTxt}. Let's update ${identifier}:`,
       ];
       return updateExpertiseDialog({
         postMessage,
@@ -414,7 +430,13 @@ function updateMissing({postMessage, user}) {
         expertise,
         command: 'expertise update missing',
         oneTimeHeader,
-        done: ask,
+        skippable: true,
+        done: (result, skip) => {
+          if (skip) {
+            skipped.push(expertise.id);
+          }
+          return ask(result);
+        },
       });
     });
   }
@@ -433,10 +455,11 @@ addCommand('update', {
     const user = getName(parsed.options.user) || this.user.name;
     const search = parsed.remain.join(' ');
     const output = [...parsed.errors];
+    const {postMessage} = this;
 
     if (search === 'missing') {
       return updateMissing({
-        postMessage: this.postMessage,
+        postMessage,
         user,
       });
     }
@@ -465,12 +488,12 @@ addCommand('update', {
       }
       const command = `expertise update ${search.toLowerCase()}`;
       return updateExpertiseDialog({
-        postMessage: this.postMessage,
+        postMessage,
         user,
         expertise: match,
         command,
         oneTimeHeader: output.splice(0, output.length),
-        done: m => ({message: done(m)}),
+        done,
       });
     })
     // Error! Print all cached output + error message + usage info, or re-throw.

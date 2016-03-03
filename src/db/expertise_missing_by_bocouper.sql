@@ -14,4 +14,4 @@ AND (
   WHERE ee.employee_id=e.id AND ee.expertise_id=exp.id
 ) = 0
 AND exp.description IS NOT null
-ORDER BY exp.name
+ORDER BY ea.name, exp.name
