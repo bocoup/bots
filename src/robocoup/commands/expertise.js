@@ -288,7 +288,7 @@ function updateExpertise({user, expertise, newValues}) {
       }
       return `${name} changed from ${oldValues[prop]} to ${newValues[prop]}.`;
     }).join(' ');
-    return `Expertise for *${expertise.expertise}* updated: ${summary}`;
+    return `_Expertise for *${expertise.expertise}* updated: ${summary}_`;
   });
 }
 
@@ -433,10 +433,11 @@ addCommand('update', {
     const user = getName(parsed.options.user) || this.user.name;
     const search = parsed.remain.join(' ');
     const output = [...parsed.errors];
+    const {postMessage} = this;
 
     if (search === 'missing') {
       return updateMissing({
-        postMessage: this.postMessage,
+        postMessage,
         user,
       });
     }
@@ -465,7 +466,7 @@ addCommand('update', {
       }
       const command = `expertise update ${search.toLowerCase()}`;
       return updateExpertiseDialog({
-        postMessage: this.postMessage,
+        postMessage,
         user,
         expertise: match,
         command,
