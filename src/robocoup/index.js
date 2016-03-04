@@ -4,7 +4,7 @@ import config from '../../config';
 import {createBot} from '../lib/bot';
 import {deparse} from '../lib/slack';
 import {db} from '../lib/db';
-import Conversation from '../lib/conversation';
+import Conversation from '../lib/bot/conversation';
 import commands from './commands';
 import jobs from './jobs';
 

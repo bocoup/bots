@@ -4,7 +4,7 @@ import moment from 'moment';
 
 import {parseArgs} from '../../lib/args';
 import {query} from '../../lib/db';
-import Dialog from '../../lib/dialog';
+import Dialog from '../../lib/bot/dialog';
 
 const description = {
   brief: 'Show your expertise.',
