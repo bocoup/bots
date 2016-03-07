@@ -4,7 +4,7 @@ import moment from 'moment';
 
 import {parseArgs} from '../../lib/args';
 import {query} from '../../lib/db';
-import Dialog from '../../lib/dialog';
+import Dialog from '../../lib/bot/dialog';
 
 const description = {
   brief: 'Show your expertise.',
@@ -420,16 +420,16 @@ function updateMissing({postMessage, user}) {
       const identifier = notSkipped.length === 1 ? 'it' : i === 1 ? 'the first' : 'the next';
       const now = i > 1 ? ' now' : '';
       const skipTxt = skipped.length > 0 ? ` (you've skipped ${skipped.length})` : '';
-      const oneTimeHeader = [
-        ...(header ? [header, ''] : []),
-        `I${now} need data for ${expertiseCount(notSkipped)}${skipTxt}. Let's update ${identifier}:`,
-      ];
-      return updateExpertiseDialog({
+      return Promise.resolve()
+      .then(() => {
+        return header && postMessage([header, '']);
+      })
+      .then(() => updateExpertiseDialog({
         postMessage,
         user,
         expertise,
         command: 'expertise update missing',
-        oneTimeHeader,
+        oneTimeHeader: `I${now} need data for ${expertiseCount(notSkipped)}${skipTxt}. Let's update ${identifier}:`,
         skippable: true,
         done: (result, skip) => {
           if (skip) {
@@ -437,7 +437,7 @@ function updateMissing({postMessage, user}) {
           }
           return ask(result);
         },
-      });
+      }));
     });
   }
   return ask();
