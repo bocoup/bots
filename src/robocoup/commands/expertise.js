@@ -80,12 +80,17 @@ function abort(...args) {
 // Get user name sans leading sigil.
 const getName = (name = '') => name.replace(/^@/, '');
 
+// Formating helper - formats a value into a small bar graph like this: ●●●○○ (3)
+function formatStatusBar(value) {
+  return `${'\u25CF'.repeat(value)}${'\u25CB'.repeat(5 - value)}`;
+}
+
 // Data-formatting helper.
 function formatByInterestAndExperience(rows, fn) {
-  return rows.map(row => {
+  return [`> *Interest*     |  *Experience*`].concat(rows.map(row => {
     const [interest, experience] = row.interest_experience;
-    return `> *Interest=${interest}, Experience=${experience}:* ${fn(row)}`;
-  });
+    return `> ${formatStatusBar(interest)} (${interest}) | ${formatStatusBar(experience)} (${experience}): ${fn(row)}`;
+  }));
 }
 
 // Find matching expertises for the given search term.
