@@ -8,7 +8,7 @@ const path = require('path');
 const commandFiles = fs.readdirSync(__dirname);
 
 module.exports = commandFiles.reduce(function (result, commandFile) {
-  const command = commandFile.slice(0, -3);
+  const command = commandFile.slice(0, -3).toLowerCase();
   result[command] = require(path.join(__dirname, commandFile));
   return result;
 }, {});

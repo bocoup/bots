@@ -96,7 +96,7 @@ bot.on('message', function(message) {
   getConversation(channel).handleMessage({message, user}, () => {
     // Parse command and args out of message.
     const args = deparse(this, message.text).split(' ');
-    const command = args.shift();
+    const command = args.shift().toLowerCase();
     // Is there a handler registered for this command?
     const handler = commands[command] && commands[command].handler;
     if (!handler) {
