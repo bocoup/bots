@@ -93,6 +93,29 @@ function formatByInterestAndExperience(rows, fn) {
   }));
 }
 
+// Produces a histogram for a specific expertise for experience and interest.
+// provide 0 for interest, and 1 for experience for @interestOrExperiencetypeIdx
+function histogramByIndex(rows, interestOrExperiencetypeIdx) {
+  const dist = rows.reduce(function(currentArray, row) {
+    currentArray[Number(row.interest_experience[interestOrExperiencetypeIdx]) - 1] += row.employees.split(',').length;
+    return currentArray;
+  }, [0, 0, 0, 0, 0]);
+
+  return dist.map(function(val, idx) {
+    return `> (${idx + 1}) : ${'\u25CF'.repeat(val)}`;
+  });
+}
+
+// Data formatting for expertise statistics
+function formatExpertiseStats(expertise) {
+  let output = [];
+  output.push(`> *Interest Distribution:*`);
+  output = output.concat(histogramByIndex(expertise, 0));
+  output.push(`> *Experience Distribution:* `);
+  output = output.concat(histogramByIndex(expertise, 1));
+  return output;
+}
+
 // Find matching expertises for the given search term.
 function findExpertise(search) {
   return query('expertise_by_name', search).then(matches => {
@@ -235,6 +258,41 @@ addCommand('find', {
           output.push(`> *No data for:* ${outstanding}`);
         }
         return formatByInterestAndExperience(expertise, o => o.employees);
+      });
+    })
+    // Success! Print all cached output + final message.
+    .then(message => [output, message])
+    // Error! Print all cached output + error message + usage info, or re-throw.
+    .catch(error => {
+      if (error.abortData) {
+        return [output, error.abortData];
+      }
+      throw error;
+    });
+  },
+});
+
+addCommand('stats', {
+  description: 'Provide statistics about a given expertise.',
+  usage: command => `${command} <expertise>`,
+  fn(...args) {
+    const search = parseArgs(args).remain.join(' ');
+    if (!search) {
+      return this.usage();
+    }
+    const output = [];
+    return findExpertiseAndHandleErrors(search).then(results => {
+      const {match} = results;
+      output.push(results.output);
+      return Promise.props({
+        expertise: query('expertise_for_all', match.id),
+        outstanding: query('expertise_outstanding_by_id', match.id),
+      }).then(({expertise, outstanding: [{employees: outstanding}]}) => {
+        // Output an overall count of missing people, instead of all the names.
+        const outstandingCount = outstanding.split(',').length;
+        output.push(`The following represents the distribution of responses from the coop,` +
+          ` minus *${outstandingCount} ${outstandingCount > 1 ? 'people' : 'person'}*.`);
+        return formatExpertiseStats(expertise);
       });
     })
     // Success! Print all cached output + final message.
