@@ -8,4 +8,5 @@ AND (
   FROM employee_expertise ee
   WHERE ee.employee_id=e.id AND ee.expertise_id=exp.id
 ) = 0
+AND exp.description IS NOT null
 GROUP BY e.slack
