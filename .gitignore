@@ -1,6 +1,4 @@
-/node_modules
-
+node_modules
 TOKEN_*
-secrets
-
 npm-debug.log*
+.env

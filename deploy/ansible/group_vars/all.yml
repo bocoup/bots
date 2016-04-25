@@ -104,5 +104,3 @@ secret_vars:
     dest: TOKEN_ROBOCOUP
   - src: token-thanksbot-slack
     dest: TOKEN_THANKSBOT
-  - src: ses.json
-    dest: EMAIL

@@ -1,5 +1,7 @@
 'use strict';
 
+require('dotenv').config();
+
 const fs = require('fs');
 const path = require('path');
 
@@ -7,24 +9,21 @@ function readKey(file) {
   const filepath = path.join(__dirname, file);
   const ext = path.extname(filepath);
   try {
-    if (ext === '.json') {
-      return require(filepath);
-    }
     return fs.readFileSync(filepath, 'utf8').replace(/^\s+|\s+$/g, '');
   }
   catch (e) {
     return null;
   }
 }
-const email = readKey('secrets/ses.json');
 
 module.exports = {
   robocoup: process.env.TOKEN_ROBOCOUP || readKey('TOKEN_ROBOCOUP'),
   thanksbot: process.env.TOKEN_THANKSBOT || readKey('TOKEN_THANKSBOT'),
   runJobs: process.env.RUN_JOBS,
   email: {
-    secret: process.env.EMAIL_SECRET || (email && email.secret),
-    key: process.env.EMAIL_KEY || (email && email.key),
+    key: process.env.AWS_ACCESS_KEY_ID,
+    secret: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_DEFAULT_REGION || 'us-east-1'
   },
   db: {
     // these defaults assume an ssh tunnel to our staging database.

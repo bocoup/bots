@@ -1,7 +1,16 @@
-import Promise from 'bluebird';
-import ses from 'node-ses';
 import config from '../../config';
 
-const client = ses.createClient(config.email);
+import AWS from 'aws-sdk';
+import Promise from 'bluebird';
+import nodemailer from 'nodemailer';
+import sesTransport from 'nodemailer-ses-transport';
 
-export default Promise.promisify(client.sendEmail, { context: client });
+const ses = nodemailer.createTransport(sesTransport({
+  ses: new AWS.SES({
+    accessKeyId: config.email.key,
+    secretAccessKey: config.email.secret,
+    region: config.email.region
+  })
+}));
+
+export default Promise.promisify(ses.sendMail, { context: ses });

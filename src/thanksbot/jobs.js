@@ -12,8 +12,8 @@ scheduler.add('0 7 * * 1', function() {
       from: 'ThanksBot <coop+thanksbot@bocoup.com>',
       to: 'Everybody <coop@bocoup.com>',
       subject: `ThanksBot Weekly: ${prettyDate()}`,
-      message: `<pre>${digest}</pre>`,
-      altText: digest,
+      html: `<pre>${digest}</pre>`,
+      text: digest,
     });
   });
 });
