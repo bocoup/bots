@@ -100,7 +100,5 @@ secret_path: /mnt/secrets
 secret_vars:
   - src: bocoup-rds.json
     dest: RDS_DB_SECRETS
-  - src: token-robocoup-slack
-    dest: TOKEN_ROBOCOUP
-  - src: token-thanksbot-slack
-    dest: TOKEN_THANKSBOT
+  - src: bot-keys
+    dest: BOT_KEYS
