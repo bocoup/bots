@@ -2,23 +2,9 @@
 
 require('dotenv').config();
 
-const fs = require('fs');
-const path = require('path');
-
-function readKey(file) {
-  const filepath = path.join(__dirname, file);
-  const ext = path.extname(filepath);
-  try {
-    return fs.readFileSync(filepath, 'utf8').replace(/^\s+|\s+$/g, '');
-  }
-  catch (e) {
-    return null;
-  }
-}
-
 module.exports = {
-  robocoup: process.env.TOKEN_ROBOCOUP || readKey('TOKEN_ROBOCOUP'),
-  thanksbot: process.env.TOKEN_THANKSBOT || readKey('TOKEN_THANKSBOT'),
+  robocoup: process.env.TOKEN_ROBOCOUP,
+  thanksbot: process.env.TOKEN_THANKSBOT,
   runJobs: process.env.RUN_JOBS,
   email: {
     key: process.env.AWS_ACCESS_KEY_ID,
