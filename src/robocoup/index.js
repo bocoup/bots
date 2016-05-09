@@ -8,7 +8,7 @@ import Conversation from '../lib/bot/conversation';
 import commands from './commands';
 import jobs from './jobs';
 
-const bot = createBot('robocoup', config.robocoup);
+const bot = createBot('robocoup', config.tokens.robocoup);
 
 const conversations = {};
 

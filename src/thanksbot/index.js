@@ -4,7 +4,7 @@ import {query} from '../lib/db';
 import {deparse} from '../lib/slack';
 import jobs from './jobs';
 
-const bot = createBot('thanksbot', config.thanksbot);
+const bot = createBot('thanksbot', config.tokens.thanksbot);
 
 bot.on('open', function() {
   console.log(`Connected to ${this.team.name} as @${this.self.name}`);
