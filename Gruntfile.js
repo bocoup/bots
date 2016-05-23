@@ -21,6 +21,7 @@ module.exports = function(grunt) {
           'src/robocoup/index.js',
           'src/robocoup/commands/expertise.js',
           'src/robocoup/commands/help.js',
+          'src/new-bot/**/*.js',
         ],
       },
       root: {
