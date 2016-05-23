@@ -21,6 +21,7 @@ module.exports = function(grunt) {
           'src/robocoup/index.js',
           'src/robocoup/commands/expertise.js',
           'src/robocoup/commands/help.js',
+          'src/new-bot/**/*.js',
         ],
       },
       root: {
@@ -77,6 +78,11 @@ module.exports = function(grunt) {
         },
         files: ['.eslintrc*', 'eslint/*'],
         tasks: ['eslint'],
+      },
+      // This makes working on chatter with npm link SO much easier!
+      framework: {
+        files: ['node_modules/chatter/lib/**'],
+        tasks: ['kill', 'start'],
       },
     },
   });

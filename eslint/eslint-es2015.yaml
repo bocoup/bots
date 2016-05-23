@@ -10,6 +10,7 @@ rules:
 
   no-inner-declarations: 0
   no-iterator: 0
+  radix: 0
 
   # ECMAScript 6
 
