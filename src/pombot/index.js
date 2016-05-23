@@ -1,6 +1,5 @@
 import config from '../../config';
 import {createBot} from '../lib/bot';
-import commands from './commands';
 
 const bot = createBot('pombot', config.tokens.pombot);
 
