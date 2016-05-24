@@ -79,6 +79,11 @@ module.exports = function(grunt) {
         files: ['.eslintrc*', 'eslint/*'],
         tasks: ['eslint'],
       },
+      // Reload the bot if chatter files change. This makes dev MUCH easier!
+      chatter: {
+        files: ['node_modules/chatter/lib/**/*'],
+        tasks: ['kill', 'start'],
+      },
     },
   });
 
