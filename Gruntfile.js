@@ -22,6 +22,7 @@ module.exports = function(grunt) {
           'src/robocoup/commands/expertise.js',
           'src/robocoup/commands/help.js',
           'src/pombot/**',
+          'src/new-bot/**/*.js',
         ],
       },
       root: {
@@ -78,6 +79,11 @@ module.exports = function(grunt) {
         },
         files: ['.eslintrc*', 'eslint/*'],
         tasks: ['eslint'],
+      },
+      // Reload the bot if chatter files change. This makes dev MUCH easier!
+      chatter: {
+        files: ['node_modules/chatter/lib/**/*'],
+        tasks: ['kill', 'start'],
       },
     },
   });
