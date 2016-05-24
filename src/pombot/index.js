@@ -11,16 +11,19 @@ import statusCommand from './commands/status';
 // create bot
 const bot = createSlackBot({
   name: 'Pombot',
-  slack: {
-    rtmClient: new RtmClient(config.tokens.pombot, {
-      dataStore: new MemoryDataStore(),
-      autoReconnect: true,
-    }),
-    webClient: new WebClient(config.tokens.pombot),
+  getSlack() {
+    return {
+      rtmClient: new RtmClient(config.tokens.pombot, {
+        dataStore: new MemoryDataStore(),
+        autoReconnect: true,
+      }),
+      webClient: new WebClient(config.tokens.pombot),
+    };
   },
-  createMessageHandler() {
-    return createConversation([
-      this.createSlackMessageHandler({dm: true}, [
+  createMessageHandler(id, {channel}) {
+    // Direct message
+    if (channel.is_im) {
+      return createConversation([
         // Nameless command that encapsulates sub-commands and adds a "help"
         // command and a fallback message handler.
         createCommand({
@@ -32,21 +35,20 @@ const bot = createSlackBot({
           iwillCommand,
           statusCommand,
         ]),
-      ]),
-      // Handle public messages, assuming the bot's actually in one or more
-      // channels.
-      this.createSlackMessageHandler({channel: true}, [
-        // In public, a top-level command should really be namespaced.
-        createCommand({
-          name: 'pom',
-          isParent: true,
-          description: `Hi, I'm pombot!`,
-        }, [
-          startCommand,
-          stopCommand,
-          iwillCommand,
-          statusCommand,
-        ]),
+      ]);
+    }
+    // Public channel
+    return createConversation([
+      // In public, a top-level command should really be namespaced.
+      createCommand({
+        name: 'pom',
+        isParent: true,
+        description: `Hi, I'm pombot!`,
+      }, [
+        startCommand,
+        stopCommand,
+        iwillCommand,
+        statusCommand,
       ]),
     ]);
   },

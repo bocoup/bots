@@ -1,6 +1,12 @@
+import config from '../config';
+
 import robocoup from './robocoup';
-import thanksbot from './thanksbot';
-import pombot from './pombot';
-thanksbot.login();
 robocoup.login();
-pombot.login();
+
+import thanksbot from './thanksbot';
+thanksbot.login();
+
+import pombot from './pombot';
+if (config.tokens.pombot) {
+  pombot.login();
+}
