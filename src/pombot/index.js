@@ -1,12 +1,13 @@
 import {RtmClient, WebClient, MemoryDataStore} from '@slack/client';
-import {createSlackBot, createConversation, createCommand} from 'chatter';
+import {createSlackBot, createCommand} from 'chatter';
 import config from '../../config';
+import Pom from './pom';
 
 // define commands
-import startCommand from './commands/start';
-import stopCommand from './commands/stop';
-import iwillCommand from './commands/iwill';
-import statusCommand from './commands/status';
+import getStartCommand from './commands/start';
+import getStopCommand from './commands/stop';
+import getIwillCommand from './commands/iwill';
+import getStatusCommand from './commands/status';
 
 // create bot
 const bot = createSlackBot({
@@ -21,36 +22,49 @@ const bot = createSlackBot({
     };
   },
   createMessageHandler(id, {channel}) {
+    // create the pom for this message
+    const pom = new Pom({
+      maxMinutes: 1,
+      warningMinutes: 0.5,
+      onWarningCallback: () => {
+        this.sendResponse({channel: channel.id}, `warning: there are *${pom.getMinutes(pom.timeLeft)}* minutes left in this pom!`);
+      },
+      onDoneCallback: () => {
+        this.sendResponse({channel: channel.id}, 'pom completed!');
+        pom.stop();
+      },
+    });
+
     // Direct message
     if (channel.is_im) {
-      return createConversation([
-        // Nameless command that encapsulates sub-commands and adds a "help"
-        // command and a fallback message handler.
-        createCommand({
-          isParent: true,
-          description: `Hi, I'm pombot!`,
-        }, [
-          startCommand,
-          stopCommand,
-          iwillCommand,
-          statusCommand,
-        ]),
-      ]);
-    }
-    // Public channel
-    return createConversation([
-      // In public, a top-level command should really be namespaced.
-      createCommand({
-        name: 'pom',
+      // im message handler
+      const messageHandler = createCommand({
         isParent: true,
         description: `Hi, I'm pombot!`,
       }, [
-        startCommand,
-        stopCommand,
-        iwillCommand,
-        statusCommand,
-      ]),
+        getStartCommand(pom),
+        getStopCommand(pom),
+        getIwillCommand,
+        getStatusCommand,
+      ]);
+      messageHandler.hasState = true;
+      return messageHandler;
+    }
+
+    // Public channel message handler
+    const messageHandler = createCommand({
+      name: 'pom',
+      isParent: true,
+      description: `Hi, I'm pombot!`,
+    }, [
+      getStartCommand(pom),
+      getStopCommand(pom),
+      getIwillCommand,
+      getStatusCommand,
     ]);
+    messageHandler.hasState = true;
+    return messageHandler;
+
   },
 });
 
