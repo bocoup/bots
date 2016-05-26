@@ -1,4 +1,5 @@
-import states from './states';
+import {states} from './pomConfig';
+import moment from 'moment';
 
 export default class Pom {
   constructor(options = {}) {
@@ -44,9 +45,23 @@ export default class Pom {
     }
   }
 
-  /* returns the time given in minutes */
-  getMinutes(milliseconds) {
-    return (milliseconds / 60000).toFixed(1);
+  /* returns the time in "x minutes and y seconds" format */
+  getTimeString(milliseconds) {
+    const minutes = parseInt(moment(milliseconds).format('m'));
+    const seconds = parseInt(moment(milliseconds).format('s'));
+    const time = [];
+
+    if (minutes) {
+      const minutesString = (minutes !== 1) ? ' minutes' : ' minute';
+      time.push(minutes + minutesString);
+    }
+
+    if (seconds) {
+      const secondsString = (seconds !== 1) ? ' seconds' : ' second';
+      time.push(seconds + secondsString);
+    }
+
+    return time.join(' & ');
   }
 
 }

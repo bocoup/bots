@@ -2,7 +2,7 @@
  * The `start` command, which starts a Pom.
  */
 import {createCommand} from 'chatter';
-import states from '../states';
+import {states} from '../pomConfig';
 
 export default function(pom) {
   return createCommand({
@@ -12,15 +12,15 @@ export default function(pom) {
 
     switch (pom.state) {
       case states.RUNNING:
-        return `there is already a pom running, there are *${pom.getMinutes(pom.timeLeft)} minutes* left.`;
+        return `🍅 there is already a pom running with *${pom.getTimeString(pom.timeLeft)}* left.`;
         break;
       case states.ON_BREAK:
-        return `we are in the middle of a break, there are *${pom.getMinutes(pom.timeLeft)} minutes* left.`;
+        return `🍅 we are in the middle of a break, there are *${pom.getTimeString(pom.timeLeft)}* left.`;
         break;
       default:
         // if pom is not running, start a new one
         pom.start();
-        return `pom started; you have *${pom.getMinutes(pom.maxSeconds)} minutes*!`;
+        return `🍅 pom started – you have *${pom.getTimeString(pom.maxSeconds)}* left!`;
         break;
     }
   });
