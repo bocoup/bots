@@ -2,12 +2,13 @@ import {RtmClient, WebClient, MemoryDataStore} from '@slack/client';
 import {createSlackBot, createCommand} from 'chatter';
 import config from '../../config';
 import Pom from './pom';
+import {times} from './pomConfig';
 
 // define commands
 import getStartCommand from './commands/start';
 import getStopCommand from './commands/stop';
-import getIwillCommand from './commands/iwill';
 import getStatusCommand from './commands/status';
+import getIwillCommand from './commands/iwill';
 
 // create bot
 const bot = createSlackBot({
@@ -24,13 +25,13 @@ const bot = createSlackBot({
   createMessageHandler(id, {channel}) {
     // create the pom for this message
     const pom = new Pom({
-      maxMinutes: 1,
-      warningMinutes: 0.5,
+      maxMinutes: times.maxMinutes,
+      warningMinutes: times.warningMinutes,
       onWarningCallback: () => {
-        this.sendResponse({channel: channel.id}, `warning: there are *${pom.getMinutes(pom.timeLeft)}* minutes left in this pom!`);
+        this.sendResponse({channel: channel.id}, `:tomato: warning – you have *${pom.getTimeString(pom.timeLeft)}* left in this pom!`);
       },
       onDoneCallback: () => {
-        this.sendResponse({channel: channel.id}, 'pom completed!');
+        this.sendResponse({channel: channel.id}, ':tomato: pom completed!');
         pom.stop();
       },
     });
@@ -40,12 +41,12 @@ const bot = createSlackBot({
       // im message handler
       const messageHandler = createCommand({
         isParent: true,
-        description: `Hi, I'm pombot!`,
+        description: `:tomato: Hi, I'm pombot!`,
       }, [
         getStartCommand(pom),
         getStopCommand(pom),
-        getIwillCommand,
-        getStatusCommand,
+        getStatusCommand(pom),
+        getIwillCommand(pom, this),
       ]);
       messageHandler.hasState = true;
       return messageHandler;
@@ -55,12 +56,12 @@ const bot = createSlackBot({
     const messageHandler = createCommand({
       name: 'pom',
       isParent: true,
-      description: `Hi, I'm pombot!`,
+      description: `:tomato: Hi, I'm pombot!`,
     }, [
       getStartCommand(pom),
       getStopCommand(pom),
-      getIwillCommand,
-      getStatusCommand,
+      getStatusCommand(pom),
+      getIwillCommand(pom),
     ]);
     messageHandler.hasState = true;
     return messageHandler;
