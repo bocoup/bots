@@ -11,6 +11,7 @@ export default class Pom {
     this.onWarningId = null;
     this.onDoneId = null;
     this.startTime = null;
+    this.taskCollection = {};
   }
 
   /* starts a pom and its timers */
@@ -27,6 +28,7 @@ export default class Pom {
   stop() {
     this.state = states.NOT_RUNNING;
     this.startTime = null;
+    this.taskCollection = {}; // TODO callback to save these tasks somewhere
     clearTimeout(this.onWarningId);
     clearTimeout(this.onDoneId);
   }
@@ -47,8 +49,9 @@ export default class Pom {
 
   /* returns the time in "x minutes and y seconds" format */
   getTimeString(milliseconds) {
-    const minutes = parseInt(moment(milliseconds).format('m'));
-    const seconds = parseInt(moment(milliseconds).format('s'));
+    const duration = moment.duration(milliseconds);
+    const minutes = duration.minutes();
+    const seconds = duration.seconds();
     const time = [];
 
     if (minutes) {

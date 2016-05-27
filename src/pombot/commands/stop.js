@@ -15,12 +15,11 @@ export default function(pom) {
         // if pom is running, get time left stop it
         const timeLeft = pom.getTimeString(pom.timeLeft);
         pom.stop();
-        return `🍅 pom stopped – there were *${timeLeft}* remaining.`;
+        return `:tomato: the pom has been stopped with *${timeLeft}* remaining.`;
         break;
       default:
         // if pom is not running
-        const command = (channel.is_im) ? '`start`' : '`pom start`';
-        return `🍅 there is no pom currently running – start one with the command ${command}`;
+        return `there is no pom currently running – start one with the command \`start\``;
         break;
     }
   });

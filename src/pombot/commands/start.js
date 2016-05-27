@@ -12,15 +12,15 @@ export default function(pom) {
 
     switch (pom.state) {
       case states.RUNNING:
-        return `🍅 there is already a pom running with *${pom.getTimeString(pom.timeLeft)}* left.`;
+        return `there is already a pom running with *${pom.getTimeString(pom.timeLeft)}* left.`;
         break;
       case states.ON_BREAK:
-        return `🍅 we are in the middle of a break, there are *${pom.getTimeString(pom.timeLeft)}* left.`;
+        return `we are in the middle of a break with *${pom.getTimeString(pom.timeLeft)}* left.`;
         break;
       default:
         // if pom is not running, start a new one
         pom.start();
-        return `🍅 pom started – you have *${pom.getTimeString(pom.maxSeconds)}* left!`;
+        return `:tomato: pom started – you have *${pom.getTimeString(pom.maxSeconds)}* left!`;
         break;
     }
   });

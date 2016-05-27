@@ -28,10 +28,10 @@ const bot = createSlackBot({
       maxMinutes: times.maxMinutes,
       warningMinutes: times.warningMinutes,
       onWarningCallback: () => {
-        this.sendResponse({channel: channel.id}, `🍅 warning – there are *${pom.getTimeString(pom.timeLeft)}* left in this pom!`);
+        this.sendResponse({channel: channel.id}, `:tomato: warning – you have *${pom.getTimeString(pom.timeLeft)}* left in this pom!`);
       },
       onDoneCallback: () => {
-        this.sendResponse({channel: channel.id}, '🍅 pom completed!');
+        this.sendResponse({channel: channel.id}, ':tomato: pom completed!');
         pom.stop();
       },
     });
@@ -41,7 +41,7 @@ const bot = createSlackBot({
       // im message handler
       const messageHandler = createCommand({
         isParent: true,
-        description: `🍅 Hi, I'm pombot!`,
+        description: `:tomato: Hi, I'm pombot!`,
       }, [
         getStartCommand(pom),
         getStopCommand(pom),
@@ -56,7 +56,7 @@ const bot = createSlackBot({
     const messageHandler = createCommand({
       name: 'pom',
       isParent: true,
-      description: `🍅 Hi, I'm pombot!`,
+      description: `:tomato: Hi, I'm pombot!`,
     }, [
       getStartCommand(pom),
       getStopCommand(pom),
