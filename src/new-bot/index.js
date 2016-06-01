@@ -1,5 +1,6 @@
 import {RtmClient, WebClient, MemoryDataStore} from '@slack/client';
 import {createSlackBot, createConversation, createCommand} from 'chatter';
+import mixinBotHelpers from '../lib/bot-helpers';
 import config from '../../config';
 
 import expertiseCommand from './commands/expertise';
@@ -46,5 +47,8 @@ const bot = createSlackBot({
     }
   },
 });
+
+// Mixin bot helpers.
+mixinBotHelpers(bot);
 
 export default bot;

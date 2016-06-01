@@ -14,6 +14,7 @@ module.exports = function(grunt) {
         src: [
           'src/index.js',
           'src/lib/args.js',
+          'src/lib/bot-helpers.js',
           'src/lib/bot.js',
           'src/lib/bot/**/*.js',
           'src/lib/slack.js',

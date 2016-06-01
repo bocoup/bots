@@ -17,7 +17,7 @@ export default createCommand({
     slackname = user.name;
   }
   else {
-    slackname = bot.parseMessage(slackname).replace(/^@/, '');
+    slackname = bot.getName(slackname);
   }
   return query('status', slackname).get(0).then(status => {
     if (!status) {
