@@ -57,7 +57,7 @@ module.exports = function(grunt) {
         spawn: false,
       },
       config: {
-        files: ['config.js'],
+        files: ['.env', 'config.js'],
         tasks: ['kill', 'start'],
       },
       src: {
