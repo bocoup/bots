@@ -175,7 +175,7 @@ const forCommand = createCommand({
   name: 'for',
   description: 'List all expertises for the given Bocouper, grouped by interest and experience.',
   usage: '[me | @bocouper]',
-}, createParser((args, meta) => forHandler(args.remain[0], meta)));
+}, createParser(({args: [name]}, meta) => forHandler(name, meta)));
 
 const meCommand = createCommand({
   name: 'me',
@@ -197,8 +197,8 @@ const findCommand = createCommand({
   name: 'find',
   description: 'List all Bocoupers with the given expertise, grouped by interest and experience.',
   usage: '<expertise name>',
-}, createParser(({remain}) => {
-  const search = remain.join(' ');
+}, createParser(({args}) => {
+  const search = args.join(' ');
   if (!search) {
     return false;
   }
@@ -232,8 +232,8 @@ const statsCommand = createCommand({
   name: 'stats',
   description: 'Provide statistics about a given expertise.',
   usage: '<expertise name>',
-}, createParser(({remain}) => {
-  const search = remain.join(' ');
+}, createParser(({args}) => {
+  const search = args.join(' ');
   if (!search) {
     return false;
   }
@@ -329,8 +329,8 @@ const updateCommand = createCommand({
       experience: Number,
       interest: Number,
     },
-  }, ({remain, options: newValues, errors}, {user}) => {
-    const search = remain.join(' ');
+  }, ({args, options: newValues, errors}, {user}) => {
+    const search = args.join(' ');
     if (!search) {
       return false;
     }
@@ -365,9 +365,7 @@ const updateCommand = createCommand({
   }),
 ]);
 
-/* eslint no-use-before-define: 0 */
-
-const expertiseCommand = createCommand({
+export default createCommand({
   name: 'expertise',
   description: 'Show your expertise.',
 }, [
@@ -379,5 +377,3 @@ const expertiseCommand = createCommand({
   scalesCommand,
   updateCommand,
 ]);
-
-export default expertiseCommand;

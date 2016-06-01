@@ -12,6 +12,7 @@ import versionCommand from './commands/version';
 
 const bot = createSlackBot({
   name: 'Robocoup Mk. II',
+  icon: 'https://dl.dropboxusercontent.com/u/294332/Bocoup/bots/robocoup_icon.png',
   getSlack() {
     return {
       rtmClient: new RtmClient(config.tokens.newbot, {
@@ -24,6 +25,8 @@ const bot = createSlackBot({
   createMessageHandler(id, {channel}) {
     // Direct message
     if (channel.is_im) {
+      // Wrapping the command in a conversation allows the bot to be aware of
+      // when a command returns a "dialog".
       return createConversation([
         // Nameless command that encapsulates sub-commands and adds a "help"
         // command and a fallback message handler.

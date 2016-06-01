@@ -30,7 +30,7 @@ const stages = [
 
 export default createCommand({
   name: 'pipeline',
-  description: 'Show information about our sales pipeline',
+  description: 'Show information about our sales pipeline.',
 }, () => {
   return query('sales_pipeline').then(metrics => {
     const year = moment().format('YYYY');
