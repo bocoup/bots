@@ -32,7 +32,7 @@ function getMetricText(who) {
 
 export default createCommand({
   name: 'perch',
-  description: 'Show information about perch',
+  description: 'Show information about perch.',
 }, (str, {user}) => {
   return Promise.all([
     getPerching(),

@@ -1,5 +1,6 @@
 import {RtmClient, WebClient, MemoryDataStore} from '@slack/client';
 import {createSlackBot, createConversation, createCommand} from 'chatter';
+import mixinBotHelpers from '../lib/bot-helpers';
 import config from '../../config';
 
 import expertiseCommand from './commands/expertise';
@@ -12,6 +13,7 @@ import versionCommand from './commands/version';
 
 const bot = createSlackBot({
   name: 'Robocoup Mk. II',
+  icon: 'https://dl.dropboxusercontent.com/u/294332/Bocoup/bots/robocoup_icon.png',
   getSlack() {
     return {
       rtmClient: new RtmClient(config.tokens.newbot, {
@@ -24,6 +26,8 @@ const bot = createSlackBot({
   createMessageHandler(id, {channel}) {
     // Direct message
     if (channel.is_im) {
+      // Wrapping the command in a conversation allows the bot to be aware of
+      // when a command returns a "dialog".
       return createConversation([
         // Nameless command that encapsulates sub-commands and adds a "help"
         // command and a fallback message handler.
@@ -43,5 +47,8 @@ const bot = createSlackBot({
     }
   },
 });
+
+// Mixin bot helpers.
+mixinBotHelpers(bot);
 
 export default bot;

@@ -14,6 +14,7 @@ module.exports = function(grunt) {
         src: [
           'src/index.js',
           'src/lib/args.js',
+          'src/lib/bot-helpers.js',
           'src/lib/bot.js',
           'src/lib/bot/**/*.js',
           'src/lib/slack.js',
@@ -57,7 +58,7 @@ module.exports = function(grunt) {
         spawn: false,
       },
       config: {
-        files: ['config.js'],
+        files: ['.env', 'config.js'],
         tasks: ['kill', 'start'],
       },
       src: {

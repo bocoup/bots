@@ -3,21 +3,6 @@ import {createCommand, createMatcher, createParser} from 'chatter';
 import heredoc from 'heredoc-tag';
 import {query} from '../../lib/db';
 
-// ============
-// MISC HELPERS
-// ============
-
-// Get user name sans leading sigil, eg: cowboy
-const getName = (bot, name = '') => bot.parseMessage(name).replace(/^@/, '');
-const getUser = (bot, name) => bot.slack.rtmClient.dataStore.getUserByName(getName(bot, name));
-const getRealName = (bot, name) => {
-  const user = getUser(bot, name);
-  return user.real_name || user.name;
-};
-
-// Get formatted slackname from user name, eg: <@U025GMQTB>
-// const formatUser = (bot, name) => `<@${getUser(bot, name).id}>`;
-
 // ==================
 // FORMATTING HELPERS
 // ==================
@@ -156,14 +141,16 @@ function forHandler(name, {bot, user}) {
   else if (name === 'me') {
     name = user.name;
   }
-  name = getName(bot, name);
+  else {
+    name = bot.getName(name);
+  }
   const isMe = name === user.name;
   return Promise.all([
     query('expertise_interest_experience_by_bocouper', name),
     query('expertise_outstanding_by_bocouper', name),
   ])
   .spread((expertise, [{outstanding}]) => [
-    `Listing all expertise for ${getRealName(bot, name)}:`,
+    `Listing all expertise for ${bot.getRealName(name)}:`,
     !isMe && outstanding && `> *No data for:* ${outstanding}`,
     formatByInterestAndExperience(expertise, o => o.expertise) || '> No expertise data found.',
     isMe && outstanding && `_*No data for:* ${outstanding}_`,
@@ -175,7 +162,7 @@ const forCommand = createCommand({
   name: 'for',
   description: 'List all expertises for the given Bocouper, grouped by interest and experience.',
   usage: '[me | @bocouper]',
-}, createParser((args, meta) => forHandler(args.remain[0], meta)));
+}, createParser(({args: [name]}, meta) => forHandler(name, meta)));
 
 const meCommand = createCommand({
   name: 'me',
@@ -197,8 +184,8 @@ const findCommand = createCommand({
   name: 'find',
   description: 'List all Bocoupers with the given expertise, grouped by interest and experience.',
   usage: '<expertise name>',
-}, createParser(({remain}) => {
-  const search = remain.join(' ');
+}, createParser(({args}) => {
+  const search = args.join(' ');
   if (!search) {
     return false;
   }
@@ -232,8 +219,8 @@ const statsCommand = createCommand({
   name: 'stats',
   description: 'Provide statistics about a given expertise.',
   usage: '<expertise name>',
-}, createParser(({remain}) => {
-  const search = remain.join(' ');
+}, createParser(({args}) => {
+  const search = args.join(' ');
   if (!search) {
     return false;
   }
@@ -329,8 +316,8 @@ const updateCommand = createCommand({
       experience: Number,
       interest: Number,
     },
-  }, ({remain, options: newValues, errors}, {user}) => {
-    const search = remain.join(' ');
+  }, ({args, options: newValues, errors}, {user}) => {
+    const search = args.join(' ');
     if (!search) {
       return false;
     }
@@ -365,9 +352,7 @@ const updateCommand = createCommand({
   }),
 ]);
 
-/* eslint no-use-before-define: 0 */
-
-const expertiseCommand = createCommand({
+export default createCommand({
   name: 'expertise',
   description: 'Show your expertise.',
 }, [
@@ -379,5 +364,3 @@ const expertiseCommand = createCommand({
   scalesCommand,
   updateCommand,
 ]);
-
-export default expertiseCommand;

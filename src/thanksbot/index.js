@@ -14,6 +14,7 @@ const messageHandler = (message, {user, bot, slack}) => {
 
 const bot = createSlackBot({
   name: 'Thanksbot',
+  icon: 'https://avatars.slack-edge.com/2016-01-07/17962262403_c150282ec5ef067ea5cc_512.png',
   verbose: true,
   getSlack() {
     return {

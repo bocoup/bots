@@ -1,18 +1,20 @@
 import {RtmClient, WebClient, MemoryDataStore} from '@slack/client';
-import {createSlackBot, createCommand} from 'chatter';
+import {createSlackBot, createCommand, createArgsAdjuster} from 'chatter';
 import config from '../../config';
 import Pom from './pom';
 import {times} from './pomConfig';
 
 // define commands
-import getStartCommand from './commands/start';
-import getStopCommand from './commands/stop';
-import getStatusCommand from './commands/status';
-import getIwillCommand from './commands/iwill';
+import startCommand from './commands/start';
+import stopCommand from './commands/stop';
+import statusCommand from './commands/status';
+import iwillCommand from './commands/iwill';
 
 // create bot
 const bot = createSlackBot({
   name: 'Pombot',
+  icon: 'https://dl.dropboxusercontent.com/u/294332/Bocoup/bots/pombot_icon.png',
+  verbose: true,
   getSlack() {
     return {
       rtmClient: new RtmClient(config.tokens.pombot, {
@@ -28,44 +30,40 @@ const bot = createSlackBot({
       maxMinutes: times.maxMinutes,
       warningMinutes: times.warningMinutes,
       onWarningCallback: () => {
-        this.sendResponse({channel: channel.id}, `:tomato: warning – you have *${pom.getTimeString(pom.timeLeft)}* left in this pom!`);
+        this.postMessage(channel.id, `:tomato: warning – you have *${pom.getTimeString(pom.timeLeft)}* left in this pom!`);
       },
       onDoneCallback: () => {
-        this.sendResponse({channel: channel.id}, ':tomato: pom completed!');
+        this.postMessage(channel.id, ':tomato: pom completed!');
         pom.stop();
       },
     });
 
-    // Direct message
-    if (channel.is_im) {
-      // im message handler
-      const messageHandler = createCommand({
-        isParent: true,
-        description: `:tomato: Hi, I'm pombot!`,
-      }, [
-        getStartCommand(pom),
-        getStopCommand(pom),
-        getStatusCommand(pom),
-        getIwillCommand(pom, this),
-      ]);
-      messageHandler.hasState = true;
-      return messageHandler;
-    }
-
-    // Public channel message handler
-    const messageHandler = createCommand({
-      name: 'pom',
+    // Give command a name in public channels.
+    const name = channel.is_im ? null : 'pom';
+    // Helper method to format the given command name.
+    const getCommand = cmd => name ? `${name} ${cmd}` : cmd;
+    // The message handler.
+    const messageHandler = createArgsAdjuster({
+      // Inject pom instance and getCommand helper into message handler 2nd
+      // (meta) argument.
+      adjustArgs(message, meta) {
+        meta.pom = pom;
+        meta.getCommand = getCommand;
+        return [message, meta];
+      },
+    }, createCommand({
       isParent: true,
+      name,
       description: `:tomato: Hi, I'm pombot!`,
     }, [
-      getStartCommand(pom),
-      getStopCommand(pom),
-      getStatusCommand(pom),
-      getIwillCommand(pom),
-    ]);
+      startCommand,
+      stopCommand,
+      statusCommand,
+      iwillCommand,
+    ]));
+    // Indicate that the message handler has state so it gets cached.
     messageHandler.hasState = true;
     return messageHandler;
-
   },
 });
 
