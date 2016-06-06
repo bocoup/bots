@@ -2,6 +2,7 @@ import {RtmClient, WebClient, MemoryDataStore} from '@slack/client';
 import {createSlackBot, createConversation, createCommand} from 'chatter';
 import mixinBotHelpers from '../lib/bot-helpers';
 import config from '../../config';
+import jobs from './jobs';
 
 import expertiseCommand from './commands/expertise';
 import outCommand from './commands/out';
@@ -50,5 +51,10 @@ const bot = createSlackBot({
 
 // Mixin bot helpers.
 mixinBotHelpers(bot);
+
+// Run scheduled jobs.
+if (config.runJobs) {
+  jobs.start(bot);
+}
 
 export default bot;
