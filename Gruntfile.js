@@ -83,7 +83,7 @@ module.exports = function(grunt) {
       },
       // Reload the bot if chatter files change. This makes dev MUCH easier!
       chatter: {
-        files: ['node_modules/chatter/lib/**/*'],
+        files: ['node_modules/chatter/dist/**/*'],
         tasks: ['kill', 'start'],
       },
     },
