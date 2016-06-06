@@ -8,7 +8,7 @@ export default class Scheduler {
   }
 
   wrapOnTick(fn) {
-    return () => fn.call(this.bot);
+    return () => fn(this.bot);
   }
 
   add(cronTime, onTick) {

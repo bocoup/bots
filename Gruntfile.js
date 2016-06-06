@@ -10,21 +10,7 @@ module.exports = function(grunt) {
         options: {
           configFile: '.eslintrc-es2015.yaml',
         },
-        // src: 'src/**/*.js',
-        src: [
-          'src/index.js',
-          'src/lib/args.js',
-          'src/lib/bot-helpers.js',
-          'src/lib/bot.js',
-          'src/lib/bot/**/*.js',
-          'src/lib/slack.js',
-          'src/thanksbot/**',
-          'src/robocoup/index.js',
-          'src/robocoup/commands/expertise.js',
-          'src/robocoup/commands/help.js',
-          'src/pombot/**',
-          'src/new-bot/**/*.js',
-        ],
+        src: 'src/**/*.js',
       },
       root: {
         options: {
@@ -62,8 +48,7 @@ module.exports = function(grunt) {
         tasks: ['kill', 'start'],
       },
       src: {
-        // files: ['<%= eslint.src.src %>'],
-        files: ['src/**/*'],
+        files: ['<%= eslint.src.src %>'],
         tasks: ['eslint:src', 'mochaTest', 'kill', 'start'],
       },
       root: {
