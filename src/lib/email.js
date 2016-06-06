@@ -9,8 +9,8 @@ const ses = nodemailer.createTransport(sesTransport({
   ses: new AWS.SES({
     accessKeyId: config.email.key,
     secretAccessKey: config.email.secret,
-    region: config.email.region
-  })
+    region: config.email.region,
+  }),
 }));
 
-export default Promise.promisify(ses.sendMail, { context: ses });
+export default Promise.promisify(ses.sendMail, {context: ses});
