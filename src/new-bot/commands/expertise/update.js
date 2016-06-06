@@ -43,7 +43,7 @@ function updateExpertise({userName, expertise, newValues}) {
 // expertise update <expertise name>
 // =================================
 
-function updateExpertiseQuestions(state, header) {
+function updateExpertiseQuestions(state, headers) {
   const {
     scales,
     oldValues,
@@ -56,7 +56,7 @@ function updateExpertiseQuestions(state, header) {
     done,
   } = state;
 
-  const startOver = () => updateExpertiseQuestions(state, '_Starting over._');
+  const startOver = () => updateExpertiseQuestions(state, ['_Starting over._']);
 
   const hasInterestChanged = () => !oldValues || newValues.interest !== oldValues.interest;
   const hasExperienceChanged = () => !oldValues || newValues.experience !== oldValues.experience;
@@ -144,7 +144,7 @@ function updateExpertiseQuestions(state, header) {
   }
 
   return questions({
-    header,
+    headers,
     questions: [
       () => getInterestQuestion(),
       () => getExperienceQuestion(),
@@ -207,13 +207,64 @@ function updateExpertiseDialog({
     };
 
     return updateExpertiseQuestions(state, [
-      oneTimeHeader,
-      lastUpdated,
-      '',
-      `> ${expertiseName} / *${expertise.area}* / *${expertise.type}*`,
-      expertise.description && `${expertise.description.replace(/^/gm, '> ')}`,
+      [
+        oneTimeHeader,
+      ],
+      [
+        lastUpdated,
+        '',
+        `> ${expertiseName} / *${expertise.area}* / *${expertise.type}*`,
+        expertise.description && `${expertise.description.replace(/^/gm, '> ')}`,
+      ],
     ]);
   });
+}
+
+// ========================
+// expertise update missing
+// ========================
+
+function updateMissing(userName) {
+  let i = 0;
+  const skipped = [];
+  const expertiseCount = n => `${n.length} expertise${n.length === 1 ? '' : 's'}`;
+  function next(header) {
+    i++;
+    return query('expertise_missing_by_bocouper', userName)
+    .then(missing => {
+      const notSkipped = missing.filter(({id}) => skipped.indexOf(id) === -1);
+      if (notSkipped.length === 0) {
+        const done = i > 1 ? 'Done. ' : '';
+        return [
+          header,
+          missing.length === 0 ? `${done}You have no outstanding expertise data.` :
+            `${done}You still have outstanding expertise data for ${expertiseCount(missing)}.`,
+          'View your expertise list with `expertise me`.',
+        ];
+      }
+      const expertise = notSkipped[0];
+      const identifier = notSkipped.length === 1 ? 'it' : i === 1 ? 'the first' : 'the next';
+      const now = i > 1 ? ' now' : '';
+      const skipTxt = skipped.length > 0 ? ` (you've skipped ${skipped.length})` : '';
+      return updateExpertiseDialog({
+        userName,
+        expertise,
+        command: 'expertise update missing',
+        oneTimeHeader: [
+          header && [header, ''],
+          `I${now} need data for ${expertiseCount(notSkipped)}${skipTxt}. Let's update ${identifier}:`,
+        ],
+        skippable: true,
+        done: (result, skip) => {
+          if (skip) {
+            skipped.push(expertise.id);
+          }
+          return next(result);
+        },
+      });
+    });
+  }
+  return next();
 }
 
 export default createCommand({
@@ -221,9 +272,7 @@ export default createCommand({
   description: 'Update your interest and experience for the given expertise.',
   usage: '[missing | <expertise name> [interest=<1-5> experience=<1-5>]]',
 }, [
-  createMatcher({match: 'missing'}, (_, {user}) => {
-    return `> update missing for ${user.name} (coming soon)`;
-  }),
+  createMatcher({match: 'missing'}, (_, {user}) => updateMissing(user.name)),
   createParser({
     parseOptions: {
       experience: Number,
