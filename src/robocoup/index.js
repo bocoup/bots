@@ -1,121 +1,60 @@
-import R from 'ramda';
-
+import {RtmClient, WebClient, MemoryDataStore} from '@slack/client';
+import {createSlackBot, createConversation, createCommand} from 'chatter';
+import mixinBotHelpers from '../lib/bot-helpers';
 import config from '../../config';
-import {createBot} from '../lib/bot';
-import {deparse} from '../lib/slack';
-import {db} from '../lib/db';
-import Conversation from '../lib/bot/conversation';
-import commands from './commands';
 import jobs from './jobs';
 
-const bot = createBot('robocoup', config.tokens.robocoup);
+import expertiseCommand from './commands/expertise';
+import outCommand from './commands/out';
+import perchCommand from './commands/perch';
+import pipelineCommand from './commands/pipeline';
+import statusCommand from './commands/status';
+import utilizationCommand from './commands/utilization';
+import versionCommand from './commands/version';
 
-const conversations = {};
-
-function getConversation({id}, fn) {
-  if (!conversations[id]) {
-    conversations[id] = new Conversation();
-  }
-  return conversations[id];
-}
-
-function log(command) {
-  return db('bot_log').insert({
-    bot: 'robocoup',
-    command,
-  }).then();
-}
-
-function getPostMessage({channel, botname}) {
-  // Flatten result array and remove null, undefined or false items, then
-  // join on newline.
-  const normalizeResult = R.pipe(
-    R.flatten,
-    R.reject(s => R.isNil(s) || s === false),
-    R.join('\n')
-  );
-  // Return a function that normalizes result (if necessary) and posts
-  // a message to the given channel as the bot.
-  return text => {
-    if (Array.isArray(text)) {
-      text = normalizeResult(text);
+const bot = createSlackBot({
+  name: 'Robocoup Mk. II',
+  icon: 'https://dl.dropboxusercontent.com/u/294332/Bocoup/bots/robocoup_icon.png',
+  getSlack() {
+    return {
+      rtmClient: new RtmClient(config.tokens.robocoup, {
+        dataStore: new MemoryDataStore(),
+        autoReconnect: true,
+      }),
+      webClient: new WebClient(config.tokens.robocoup),
+    };
+  },
+  createMessageHandler(id, {channel}) {
+    // Direct message
+    if (channel.is_im) {
+      // Wrapping the command in a conversation allows the bot to be aware of
+      // when a command returns a "dialog".
+      return createConversation([
+        // Nameless command that encapsulates sub-commands and adds a "help"
+        // command and a fallback message handler.
+        createCommand({
+          isParent: true,
+          description: `Dead or alive, you're coming with me.`,
+        }, [
+          expertiseCommand,
+          outCommand,
+          perchCommand,
+          pipelineCommand,
+          statusCommand,
+          utilizationCommand,
+          versionCommand,
+        ]),
+      ]);
     }
-    if (!text) {
-      return Promise.resolve();
-    }
-    // Return a promise that resolves when channel.postMessage gets a response.
-    // I have no idea why it doesn't just do this!
-    return new Promise((resolve, reject) => {
-      // Override the built-in method that gets called on postMessage response.
-      channel._onPostMessage = data => {
-        // Remove the override, and call the original method.
-        delete channel._onPostMessage;
-        channel._onPostMessage(data);
-        // Resolve or reject as-appropriate.
-        if (data.ok) {
-          resolve(data);
-        }
-        else {
-          reject(data);
-        }
-      };
-      channel.postMessage({
-        username: botname,
-        text,
-        unfurl_links: false,
-        unfurl_media: false,
-      });
-    });
-  };
-}
-
-bot.on('open', function() {
-  console.log(`Connected to ${this.team.name} as @${this.self.name}`);
-  if (config.runJobs) {
-    jobs.start(bot);
-  }
+  },
 });
 
-bot.on('message', function(message) {
-  const channel = this.getChannelGroupOrDMByID(message.channel);
-  // Ignore non-im messages or non-message messages.
-  if (!channel.is_im || message.type !== 'message') {
-    return;
-  }
-  // If the message was a "changed" message, get the underlying message.
-  if (message.subtype === 'message_changed') {
-    message = message.message;
-  }
-  // Any message with a subtype or attachments can be safely ignored.
-  if (message.subtype || message.attachments) {
-    return;
-  }
-  const user = this.getUserByID(message.user);
+// Mixin bot helpers.
+mixinBotHelpers(bot);
 
-  const postMessage = getPostMessage({channel, botname: 'Robocoup'});
-  getConversation(channel).handleMessage({message, user}, () => {
-    // Parse command and args out of message.
-    const args = deparse(this, message.text).split(' ');
-    const command = args.shift().toLowerCase();
-    // Is there a handler registered for this command?
-    const handler = commands[command] && commands[command].handler;
-    if (!handler) {
-      return `Unknown command \`${command}\`.`;
-    }
-    // Run the command!
-    return handler({channel, postMessage, command, user}, ...args);
-  })
-  .tap(() => log(message.text))
-  .then(postMessage)
-  .catch(error => {
-    postMessage(`An unexpected error occurred: \`${error.message}\``);
-    console.error(error.stack);
-  });
-});
-
-bot.on('error', function(error) {
-  console.log('slack error', error);
-});
-
+// Run scheduled jobs.
+if (config.runJobs) {
+  jobs.start(bot);
+}
 
 export default bot;

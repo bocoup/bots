@@ -1,23 +1,16 @@
 /*
  * A command to show who is out today.
  */
-import R from 'ramda';
 import moment from 'moment';
-
+import {createCommand} from 'chatter';
 import {query} from '../../lib/db';
 
-export const usage = 'Show who is out:\n`Usage: out [today]`';
-
-export function handler (meta, timeframe) {
-  if (!timeframe) {
-    return 'No timeframe specified.';
-  }
-  return query('out_today')
-    .then(R.map(R.prop('bocouper')))
-    .then(R.join('\n'))
-    .then((who) => {
-      return [
-        `*Bocoupers out on ${moment().format('MMMM Do, YYYY')}*`, who
-      ];
-    });
-}
+export default createCommand({
+  name: 'out',
+  description: 'Show who is out today.',
+}, () => {
+  return query('out_today').then(results => [
+    `*Bocoupers out on ${moment().format('MMMM Do, YYYY')}:*`,
+    results.map(o => `> ${o.bocouper}`),
+  ]);
+});
