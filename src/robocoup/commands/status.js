@@ -26,6 +26,7 @@ export default createCommand({
     return [
       `> *Status for ${moment().format('MMMM Do, YYYY')}:*`,
       `> *Name:* ${status.bocouper}`,
+      `> *Check In Person:* ${status.check_in_person}`,
       `> *Project:* ${status.project || 'n/a'}`,
       `> *Initiative:* ${status.initiative}`,
       `> *Utilization Type:* ${status.utilization_type}`,
