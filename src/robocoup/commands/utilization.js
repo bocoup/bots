@@ -19,16 +19,16 @@ const getTotal = R.pipe(R.map(R.prop('total')), R.sum);
 
 // date ranges
 const firstOfYear = moment().startOf('year').format('YYYY-MM-DD');
-const today = moment().subtract(1, 'day').format('YYYY-MM-DD');
-const firstDay = moment().subtract(6, 'months').format('YYYY-MM-DD');
-const lastDay = moment().add(6, 'months').format('YYYY-MM-DD');
+const today = moment().startOf('today').format('YYYY-MM-DD');
+const firstDay = moment().startOf('today').subtract(6, 'months').format('YYYY-MM-DD');
+const lastDay = moment().startOf('today').add(6, 'months').format('YYYY-MM-DD');
 
 const BAR_WIDTH = 10;
 
 function percentBar(percentage, title) {
   const bar = histogramByPercentage(BAR_WIDTH, percentage);
-  const displayPercentage = `${Math.round(percentage * 100)}%`;
-  return `\`${bar} ${displayPercentage}\` ${title}`;
+  const displayPercentage = `  ${Math.round(percentage * 100)}`.slice(-3);
+  return `\`${bar} ${displayPercentage}%\` ${title}`;
 }
 
 function dayCountBar(max, count, title) {
@@ -110,40 +110,57 @@ export default createCommand({
     const billableYtdUsage = R.filter(hasDays)(billableYtd);
     const nonBillableYtd = R.filter(isNonBillable)(myYtd);
     const nonBillableYtdUsage = R.filter(hasDays)(nonBillableYtd);
+    const unscheduledYtd = countDaysYtd - getTotal(myYtd);
     const myYtdMetrics = [
       `*My Utilization Status: ${moment().year()} To Date*`,
+    ];
+    if (unscheduledYtd > 0) {
+      myYtdMetrics.push(`> ${ytdBar(unscheduledYtd, 'Unscheduled')}`);
+    }
+    myYtdMetrics.push([
       `> ${ytdBar(getTotal(billableYtd), 'Billable')}`,
       billableYtdUsage.map(metric => `>╰ ${ytdBar(metric.total, metric.name)}`),
       `> ${ytdBar(getTotal(nonBillableYtd), 'Non-Billable')}`,
       nonBillableYtdUsage.map(metric => `>╰ ${ytdBar(metric.total, metric.name)}`),
-    ];
+    ]);
 
     // calculate team member utilization for the last six months
     const billablePast = R.filter(isBillable)(past);
     const billablePastUsage = R.filter(hasDays)(billablePast);
     const nonBillablePast = R.filter(isNonBillable)(past);
     const nonBillablePastUsage = R.filter(hasDays)(nonBillablePast);
+    const unscheduledPast = countDaysPast - getTotal(past);
     const myPastMetrics = [
       `*My Utilization Status: Last Six Months*`,
+    ];
+    if (unscheduledPast > 0) {
+      myPastMetrics.push(`> ${futureBar(unscheduledPast, 'Unscheduled')}`);
+    }
+    myPastMetrics.push([
       `> ${pastBar(getTotal(billablePast), 'Billable')}`,
       billablePastUsage.map(metric => `>╰ ${pastBar(metric.total, metric.name)}`),
       `> ${pastBar(getTotal(nonBillablePast), 'Non-Billable')}`,
       nonBillablePastUsage.map(metric => `>╰ ${pastBar(metric.total, metric.name)}`),
-    ];
+    ]);
 
     // calculate team member utilization for the next six months
     const billableFuture = R.filter(isBillable)(future);
     const billableFutureUsage = R.filter(hasDays)(billableFuture);
     const nonBillableFuture = R.filter(isNonBillable)(future);
     const nonBillableFutureUsage = R.filter(hasDays)(nonBillableFuture);
+    const unscheduledFuture = countDaysFuture - getTotal(future);
     const myFutureMetrics = [
       `*My Utilization Status: Next Six Months* _(as currently scheduled)_`,
+    ];
+    if (unscheduledFuture > 0) {
+      myFutureMetrics.push(`> ${futureBar(unscheduledFuture, 'Unscheduled')}`);
+    }
+    myFutureMetrics.push([
       `> ${futureBar(getTotal(billableFuture), 'Billable')}`,
       billableFutureUsage.map(metric => `>╰ ${futureBar(metric.total, metric.name)}`),
       `> ${futureBar(getTotal(nonBillableFuture), 'Non-Billable')}`,
       nonBillableFutureUsage.map(metric => `>╰ ${futureBar(metric.total, metric.name)}`),
-      `> ${futureBar(countDaysFuture - getTotal(future), 'Unscheduled')}`,
-    ];
+    ]);
 
     // calculate which utilization/leave types are possible
     const types = R.uniq(R.map(R.prop('name'))(myYearWindow));
