@@ -1,8 +1,7 @@
--- a row for each day of the year so far and the next 30 days
--- TODO: this is going to break when we cross a year boundary
+-- a row for each day in the last year + the next 30 days
 WITH range AS (
   SELECT generate_series(
-    DATE_TRUNC('year', CURRENT_DATE),
+    CURRENT_DATE-interval '1 year',
     CURRENT_DATE+interval '30 days',
     '1 day'
   ) AS day
@@ -58,20 +57,23 @@ utilization_rate AS (
     cbe.day,
     cbe.total AS billable_engineers,
     cbu.total AS billable_utilizations,
-    cbu.total::numeric / cbe.total::numeric * 100 AS rate
+    cbu.total::numeric / cbe.total::numeric AS rate
   FROM count_billable_employee AS cbe, count_billable_utilization AS cbu
   WHERE cbe.day = cbu.day
 )
 -- build our metric
 SELECT
-  ROUND(AVG(ur.rate) FILTER (
+  AVG(ur.rate) FILTER (
     WHERE ur.day BETWEEN CURRENT_DATE-interval '30 days' AND CURRENT_DATE
-  )) AS last_30_days,
-  ROUND(AVG(ur.rate) FILTER (
+  ) AS last_30_days,
+  AVG(ur.rate) FILTER (
     WHERE ur.day BETWEEN CURRENT_DATE AND CURRENT_DATE+interval '30 days'
-  )) AS next_30_days,
-  ROUND(AVG(ur.rate) FILTER (
+  ) AS next_30_days,
+  AVG(ur.rate) FILTER (
     WHERE ur.day <= CURRENT_DATE
-  )) AS ytd,
+  ) AS last_365_days,
+  AVG(ur.rate) FILTER (
+    WHERE ur.day BETWEEN DATE_TRUNC('year',CURRENT_DATE) AND CURRENT_DATE
+  ) AS ytd,
   (SELECT cbe.total FROM count_billable_employee AS cbe WHERE cbe.day = CURRENT_DATE) AS billable_count
 FROM utilization_rate AS ur
