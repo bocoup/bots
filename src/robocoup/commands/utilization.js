@@ -23,7 +23,7 @@ const today = moment().subtract(1, 'day').format('YYYY-MM-DD');
 const firstDay = moment().subtract(6, 'months').format('YYYY-MM-DD');
 const lastDay = moment().add(6, 'months').format('YYYY-MM-DD');
 
-const BAR_WIDTH = 15;
+const BAR_WIDTH = 10;
 
 function percentBar(percentage, title) {
   const bar = histogramByPercentage(BAR_WIDTH, percentage);

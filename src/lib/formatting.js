@@ -1,4 +1,5 @@
 export const FILLED = '\u2588';
+export const HALF = '\u258c';
 export const EMPTY = ' ';
 
 export function histogram(width, fill) {
@@ -9,5 +10,8 @@ export function histogram(width, fill) {
 }
 
 export function histogramByPercentage(width, percentage) {
+  if (percentage > 0 && percentage < 0.05) {
+    return HALF + EMPTY.repeat(width - 1);
+  }
   return histogram(width, Math.round(width * percentage));
 }
