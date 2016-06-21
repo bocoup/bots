@@ -97,7 +97,7 @@ export default createCommand({
     const future = R.filter(isFuture)(myYearWindow);
 
     const companyMetrics = [
-      `> *Bocoup Utilization Status*`,
+      `*Bocoup Utilization Status*`,
       `> ${percentBar(company.last_30_days, 'Last 30 Days')}`,
       `> ${percentBar(company.next_30_days, 'Next 30 Days _(as currently scheduled)_')}`,
       `> ${percentBar(company.last_365_days, 'Last 365 Days')}`,
@@ -111,7 +111,7 @@ export default createCommand({
     const nonBillableYtd = R.filter(isNonBillable)(myYtd);
     const nonBillableYtdUsage = R.filter(hasDays)(nonBillableYtd);
     const myYtdMetrics = [
-      `> *My Utilization Status: ${moment().year()} To Date*`,
+      `*My Utilization Status: ${moment().year()} To Date*`,
       `> ${ytdBar(getTotal(billableYtd), 'Billable')}`,
       billableYtdUsage.map(metric => `>╰ ${ytdBar(metric.total, metric.name)}`),
       `> ${ytdBar(getTotal(nonBillableYtd), 'Non-Billable')}`,
@@ -124,7 +124,7 @@ export default createCommand({
     const nonBillablePast = R.filter(isNonBillable)(past);
     const nonBillablePastUsage = R.filter(hasDays)(nonBillablePast);
     const myPastMetrics = [
-      `> *My Utilization Status: Last Six Months*`,
+      `*My Utilization Status: Last Six Months*`,
       `> ${pastBar(getTotal(billablePast), 'Billable')}`,
       billablePastUsage.map(metric => `>╰ ${pastBar(metric.total, metric.name)}`),
       `> ${pastBar(getTotal(nonBillablePast), 'Non-Billable')}`,
@@ -137,7 +137,7 @@ export default createCommand({
     const nonBillableFuture = R.filter(isNonBillable)(future);
     const nonBillableFutureUsage = R.filter(hasDays)(nonBillableFuture);
     const myFutureMetrics = [
-      `> *My Utilization Status: Next Six Months* _(as currently scheduled)_`,
+      `*My Utilization Status: Next Six Months* _(as currently scheduled)_`,
       `> ${futureBar(getTotal(billableFuture), 'Billable')}`,
       billableFutureUsage.map(metric => `>╰ ${futureBar(metric.total, metric.name)}`),
       `> ${futureBar(getTotal(nonBillableFuture), 'Non-Billable')}`,
@@ -155,12 +155,12 @@ export default createCommand({
     // calculate which utilization/leave types haven't been used
     const unusedTypes = R.difference(types, nonEmptyTypes).sort();
     const myUtilizationTypesNotUsed = [
-      `> *You have no utilizations for the following types:*`,
+      `*You have no utilizations for the following types:*`,
       `> ${unusedTypes.join(', ')}`,
     ];
 
     const resources = [
-      `> *Resources*`,
+      `*Resources*`,
       `> <https://github.com/bocoup/bocoup-meta/wiki/Policies#time-off|Time Off Policy>`,
       `> <https://away.bocoup.com|Make a Time Off Request>`,
     ];
