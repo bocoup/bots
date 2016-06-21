@@ -87,7 +87,7 @@ export default createCommand({
     qDaysYtd,
   ];
 
-  return Promise.all(queries).then(([company, myYtd, myYearWindow, countDaysPast, countDaysFuture, countDaysYtd]) => {
+  return Promise.all(queries).spread((company, myYtd, myYearWindow, countDaysPast, countDaysFuture, countDaysYtd) => {
 
     const pastBar = R.partial(dayCountBar, [countDaysPast]);
     const futureBar = R.partial(dayCountBar, [countDaysFuture]);
