@@ -15,6 +15,13 @@ const isBillable = R.propEq('is_billable', true);
 const isNonBillable = R.propEq('is_billable', false);
 const hasNoDays = R.pipe(R.prop('total'), R.equals(0));
 const hasDays = R.pipe(hasNoDays, R.not);
+const isLeave = R.propEq('type', 'leave');
+const isPto = R.allPass([isLeave, R.propEq('id', 5)]);
+const isProdev = R.allPass([isLeave, R.propEq('id', 3)]);
+const expectedInFuture = R.allPass([
+  R.anyPass([isPto, isProdev]),
+  hasNoDays,
+]);
 const getTotal = R.pipe(R.map(R.prop('total')), R.sum);
 
 // date ranges
@@ -78,6 +85,11 @@ export default createCommand({
     today
   ).get(0).get('count');
 
+  const qCheckInPerson = query(
+    'check_in_person',
+    user
+  ).get(0).get('name');
+
   const queries = [
     qCompany,
     qMyYtd,
@@ -85,9 +97,10 @@ export default createCommand({
     qDaysPast,
     qDaysFuture,
     qDaysYtd,
+    qCheckInPerson,
   ];
 
-  return Promise.all(queries).spread((company, myYtd, myYearWindow, countDaysPast, countDaysFuture, countDaysYtd) => {
+  return Promise.all(queries).spread((company, myYtd, myYearWindow, countDaysPast, countDaysFuture, countDaysYtd, checkInPerson) => {
 
     const pastBar = R.partial(dayCountBar, [countDaysPast]);
     const futureBar = R.partial(dayCountBar, [countDaysFuture]);
@@ -98,11 +111,13 @@ export default createCommand({
 
     const companyMetrics = [
       `*Bocoup Utilization Status*`,
+      `> ${percentBar(company.ytd, `*${moment().year()} to Date*`)}`,
       `> ${percentBar(company.last_30_days, 'Last 30 Days')}`,
       `> ${percentBar(company.next_30_days, 'Next 30 Days _(as currently scheduled)_')}`,
+      `> ${percentBar(company.last_6_months, 'Last 6 Months')}`,
+      `> ${percentBar(company.next_6_months, 'Next 6 Months _(as currently scheduled)_')}`,
       `> ${percentBar(company.last_365_days, 'Last 365 Days')}`,
-      `> ${percentBar(company.ytd, `${moment().year()} to Date`)}`,
-      `> _Our goal is always *80%* of our *${company.billable_count}* billable team members utilized on billable B2B projects._`,
+      `> _Our goal is currently *80%* of our *${company.billable_count}* billable team members utilized on billable B2B projects._`,
     ];
 
     // calculate team member utilization year to date
@@ -162,24 +177,22 @@ export default createCommand({
       nonBillableFutureUsage.map(metric => `>╰ ${futureBar(metric.total, metric.name)}`),
     ]);
 
-    // calculate which utilization/leave types are possible
-    const types = R.uniq(R.map(R.prop('name'))(myYearWindow));
-    // calculate which utilizations/leave types a team member has used
-    const nonEmptyTypes = R.uniq(R.concat(
-      R.map(R.prop('name'))(R.filter(hasDays)(myYearWindow)),
-      R.map(R.prop('name'))(R.filter(hasDays)(myYtd))
-    ));
-    // calculate which utilization/leave types haven't been used
-    const unusedTypes = R.difference(types, nonEmptyTypes).sort();
-    const myUtilizationTypesNotUsed = [
-      `*You have no utilizations for the following types:*`,
-      `> ${unusedTypes.join(', ')}`,
-    ];
+    // find any type that we always expect to exist in the next six months
+    const missingTypes = R.filter(expectedInFuture)(future);
+    const alerts = [];
+    if (missingTypes.length) {
+      alerts.push([
+        '*Notifications*',
+        'You have no utilizations scheduled for the following type(s) in the next six months:',
+        R.map(R.prop('name'))(missingTypes).join(', '),
+      ]);
+    }
 
     const resources = [
       `*Resources*`,
       `> <https://github.com/bocoup/bocoup-meta/wiki/Policies#time-off|Time Off Policy>`,
       `> <https://away.bocoup.com|Make a Time Off Request>`,
+      `> If you have any questions about this data, please speak with your check in person: *${checkInPerson}*.`,
     ];
 
     return [
@@ -191,7 +204,7 @@ export default createCommand({
       '',
       myFutureMetrics,
       '',
-      myUtilizationTypesNotUsed,
+      alerts,
       '',
       resources,
     ];

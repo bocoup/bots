@@ -70,6 +70,12 @@ SELECT
     WHERE ur.day BETWEEN CURRENT_DATE AND CURRENT_DATE+interval '30 days'
   ) AS next_30_days,
   AVG(ur.rate) FILTER (
+    WHERE ur.day BETWEEN CURRENT_DATE-interval '6 months' AND CURRENT_DATE
+  ) AS last_6_months,
+  AVG(ur.rate) FILTER (
+    WHERE ur.day BETWEEN CURRENT_DATE AND CURRENT_DATE+interval '6 months'
+  ) AS next_6_months,
+  AVG(ur.rate) FILTER (
     WHERE ur.day <= CURRENT_DATE
   ) AS last_365_days,
   AVG(ur.rate) FILTER (

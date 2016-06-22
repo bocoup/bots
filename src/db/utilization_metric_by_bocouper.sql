@@ -28,6 +28,7 @@ utilizations AS (
 -- count all utilizations per utilization type, earlier than today
 past_utilization_type_counts AS (
   SELECT
+    ut.id,
     ut.name,
     COALESCE(u.is_billable, false) AS is_billable,
     SUM(CASE WHEN u.day IS NULL then 0 ELSE 1 END)::integer AS total
@@ -37,11 +38,12 @@ past_utilization_type_counts AS (
     u.is_past IS true AND
     u.leave_request_type_id IS null
   )
-  GROUP BY name, is_billable
+  GROUP BY name, id, is_billable
 ),
 -- count all utilizations per utilization type, later than today
 future_utilization_type_counts AS (
   SELECT
+    ut.id,
     ut.name,
     COALESCE(u.is_billable, false) AS is_billable,
     SUM(CASE WHEN u.day IS NULL then 0 ELSE 1 END)::integer AS total
@@ -51,11 +53,12 @@ future_utilization_type_counts AS (
     u.is_past IS false AND
     u.leave_request_type_id IS null
   )
-  GROUP BY name, is_billable
+  GROUP BY name, id, is_billable
 ),
 -- count all utilizations per leave request type, earlier than today
 past_leave_counts AS (
   SELECT
+    lrt.id,
     lrt.name,
     COALESCE(u.is_billable, false) AS is_billable,
     SUM(CASE WHEN u.day IS NULL then 0 ELSE 1 END)::integer AS total
@@ -64,11 +67,12 @@ past_leave_counts AS (
     u.leave_request_type_id=lrt.id AND
     u.is_past IS true
   )
-  GROUP BY name, is_billable
+  GROUP BY name, id, is_billable
 ),
 -- counts all utilizations per leave request type, later than today
 future_leave_counts AS (
   SELECT
+    lrt.id,
     lrt.name,
     COALESCE(u.is_billable, false) AS is_billable,
     SUM(CASE WHEN u.day IS NULL then 0 ELSE 1 END)::integer AS total
@@ -77,7 +81,7 @@ future_leave_counts AS (
     u.leave_request_type_id=lrt.id AND
     u.is_past IS false
   )
-  GROUP BY name, is_billable
+  GROUP BY name, id, is_billable
 )
 SELECT
   'past'::text AS timeframe,
