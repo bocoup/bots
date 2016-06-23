@@ -1,8 +1,8 @@
--- a row for each day in the last year + the next 30 days
+-- a row for each day in the last year + the next 6 months
 WITH range AS (
   SELECT generate_series(
     CURRENT_DATE-interval '1 year',
-    CURRENT_DATE+interval '30 days',
+    CURRENT_DATE+interval '6 months',
     '1 day'
   ) AS day
 ),
