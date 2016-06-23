@@ -1,4 +1,4 @@
--- a row for each day in the last year + the next 30 days
+-- a row for each day in a defined range
 WITH range AS (
   SELECT generate_series(
     ?::date,
