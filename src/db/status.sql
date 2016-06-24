@@ -8,7 +8,7 @@ SELECT
   p.name AS project
 FROM utilization AS u
 INNER JOIN employee AS e ON e.id=u.employee_id
-INNER JOIN employee AS check_in_person ON e.id=e.supporter_id
+INNER JOIN employee AS check_in_person ON check_in_person.id=e.supporter_id
 INNER JOIN utilization_type AS ut ON ut.id=u.utilization_type_id
 LEFT JOIN leave_request_type AS lrt ON lrt.id=u.leave_request_type_id
 INNER JOIN initiative AS i ON i.id=u.initiative_id
