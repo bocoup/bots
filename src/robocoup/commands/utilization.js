@@ -110,7 +110,7 @@ export default createCommand({
     const future = R.filter(isFuture)(myYearWindow);
 
     const companyMetrics = [
-      `*Bocoup Utilization Status*`,
+      `*Bocoup Billable Utilization Status*`,
       `> ${percentBar(company.ytd, `*${moment().year()} to Date*`)}`,
       `> ${percentBar(company.last_30_days, 'Last 30 Days')}`,
       `> ${percentBar(company.next_30_days, 'Next 30 Days _(as currently scheduled)_')}`,
@@ -127,7 +127,7 @@ export default createCommand({
     const nonBillableYtdUsage = R.filter(hasDays)(nonBillableYtd);
     const unscheduledYtd = countDaysYtd - getTotal(myYtd);
     const myYtdMetrics = [
-      `*My Utilization Status: ${moment().year()} To Date*`,
+      `*My Utilization Status: ${moment().year()} to Date*`,
     ];
     if (unscheduledYtd > 0) {
       myYtdMetrics.push(`> ${ytdBar(unscheduledYtd, 'Unscheduled')}`);
