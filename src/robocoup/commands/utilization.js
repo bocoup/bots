@@ -163,13 +163,9 @@ export default createCommand({
     const billableFutureUsage = R.filter(hasDays)(billableFuture);
     const nonBillableFuture = R.filter(isNonBillable)(future);
     const nonBillableFutureUsage = R.filter(hasDays)(nonBillableFuture);
-    const unscheduledFuture = countDaysFuture - getTotal(future);
     const myFutureMetrics = [
       `*My Utilization Status: Next Six Months* _(as currently scheduled)_`,
     ];
-    if (unscheduledFuture > 0) {
-      myFutureMetrics.push(`> ${futureBar(unscheduledFuture, 'Unscheduled')}`);
-    }
     myFutureMetrics.push([
       `> ${futureBar(getTotal(billableFuture), 'Billable')}`,
       billableFutureUsage.map(metric => `>╰ ${futureBar(metric.total, metric.name)}`),
