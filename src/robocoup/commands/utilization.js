@@ -180,7 +180,7 @@ export default createCommand({
       alerts.push([
         '*Notifications*',
         'You have no utilizations scheduled for the following type(s) in the next six months:',
-        R.map(R.prop('name'))(missingTypes).join(', '),
+        `> ${R.map(R.prop('name'))(missingTypes).join(', ')}`,
       ]);
     }
 
