@@ -166,12 +166,16 @@ export default createCommand({
     const myFutureMetrics = [
       `*My Utilization Status: Next Six Months* _(as currently scheduled)_`,
     ];
+    const unscheduledFuture = countDaysFuture - getTotal(future);
     myFutureMetrics.push([
       `> ${futureBar(getTotal(billableFuture), 'Billable')}`,
       billableFutureUsage.map(metric => `>╰ ${futureBar(metric.total, metric.name)}`),
       `> ${futureBar(getTotal(nonBillableFuture), 'Non-Billable')}`,
       nonBillableFutureUsage.map(metric => `>╰ ${futureBar(metric.total, metric.name)}`),
     ]);
+    if (unscheduledFuture > 0) {
+      myFutureMetrics.push(`> ${futureBar(unscheduledFuture, 'Unscheduled')}`);
+    }
 
     // find any type that we always expect to exist in the next six months
     const missingTypes = R.filter(expectedInFuture)(future);
