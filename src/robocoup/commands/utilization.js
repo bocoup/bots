@@ -70,7 +70,7 @@ export default createCommand({
   const qDaysPast = query(
     'days_in_range',
     firstDay,
-    today
+    moment(today).subtract(1, 'day').format('YYYY-MM-DD')
   ).get(0).get('count');
 
   const qDaysFuture = query(
