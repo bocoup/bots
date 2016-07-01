@@ -6,8 +6,7 @@ module.exports = {
   runJobs: process.env.RUN_JOBS,
   tokens: {
     robocoup: process.env.TOKEN_ROBOCOUP,
-    thanksbot: process.env.TOKEN_THANKSBOT,
-    pombot: process.env.TOKEN_POMBOT,
+    thanksbot: process.env.TOKEN_THANKSBOT
   },
   email: {
     key: process.env.AWS_ACCESS_KEY_ID,

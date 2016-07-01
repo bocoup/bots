@@ -9,8 +9,3 @@ import thanksbot from './thanksbot';
 if (config.tokens.thanksbot) {
   thanksbot.login();
 }
-
-import pombot from './pombot';
-if (config.tokens.pombot) {
-  pombot.login();
-}
