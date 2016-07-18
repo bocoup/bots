@@ -28,7 +28,8 @@
   },
   "scripts": {
     "tunnel": "ssh -L 5400:api-staging.bocoup.com:5432 api-staging.bocoup.com",
-    "get-secrets": "ssh nest.bocoup.com \"cat /mnt/secrets/ses\" > ./.env",
+    "get-secrets": "ssh nest.bocoup.com cat /mnt/secrets/{ses,rds-bocoup-db/{connection,db/bocoup-staging}} > .env",
+    "db": "export $(<.env) && psql $PGNAME",
     "start": "babel-node ./src/index",
     "start-dev": "parallelshell 'npm run tunnel' 'grunt'",
     "test": "grunt test"
