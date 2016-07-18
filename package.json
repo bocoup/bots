@@ -27,11 +27,10 @@
     "wordwrap": "^1.0.0"
   },
   "scripts": {
-    "tunnel": "ssh -L 5400:api-staging.bocoup.com:5432 api-staging.bocoup.com",
     "get-secrets": "ssh nest.bocoup.com cat /mnt/secrets/{ses,rds-bocoup-db/{connection,db/bocoup-staging}} > .env",
     "db": "export $(<.env) && psql $PGNAME",
     "start": "babel-node ./src/index",
-    "start-dev": "parallelshell 'npm run tunnel' 'grunt'",
+    "start-dev": "grunt",
     "test": "grunt test"
   },
   "devDependencies": {
@@ -41,7 +40,6 @@
     "grunt-contrib-watch": "^0.6.1",
     "grunt-eslint": "^17.3.1",
     "grunt-mocha-test": "^0.12.7",
-    "mocha": "^2.3.4",
-    "parallelshell": "^2.0.0"
+    "mocha": "^2.3.4"
   }
 }
