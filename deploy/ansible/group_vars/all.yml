@@ -103,7 +103,11 @@ secret_user: "{{ lookup('env', 'USER') }}"
 secret_server: nest.bocoup.com
 secret_path: /mnt/secrets
 secret_vars:
-  - src: bocoup-rds.json
-    dest: RDS_DB_SECRETS
+  - src: rds-bocoup-db/connection
+    dest: RDS
+  - src: rds-bocoup-db/db/bocoup
+    dest: BOT_DB
   - src: bot-keys
     dest: BOT_KEYS
+  - src: ses
+    dest: SES
