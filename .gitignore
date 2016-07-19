@@ -3,3 +3,4 @@ TOKEN_*
 npm-debug.log*
 .env
 *.retry
+.vagrant
