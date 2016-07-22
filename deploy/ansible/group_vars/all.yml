@@ -107,7 +107,7 @@ secret_vars:
     dest: RDS
   - src: rds-bocoup-db/db/bocoup
     dest: BOT_DB
-  - src: bot-keys
+  - src: bots/bots-production
     dest: BOT_KEYS
   - src: ses
     dest: SES
