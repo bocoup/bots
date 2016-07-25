@@ -27,7 +27,7 @@
     "wordwrap": "^1.0.0"
   },
   "scripts": {
-    "get-secrets": "ssh nest.bocoup.com cat /mnt/secrets/{ses,rds-bocoup-db/{connection,db/bocoup-staging}} > .env",
+    "get-secrets": "ssh nest.bocoup.com cat /mnt/secrets/{ses,bots/bots-dev,rds-bocoup-db/{connection,db/bocoup-staging}} > .env",
     "db": "export $(<.env) && psql $PGNAME",
     "start": "babel-node ./src/index",
     "start-dev": "grunt",
