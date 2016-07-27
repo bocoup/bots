@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import knex from 'knex';
+import Promise from 'bluebird';
 
 import config from '../../config';
 
@@ -25,5 +26,5 @@ function loadQueries(sqlDir) {
 export const queries = loadQueries(path.join(__dirname, '..', 'db'));
 
 export function query(name, ...args) {
-  return queries[name](...args).then(result => result.rows);
+  return Promise.resolve(queries[name](...args)).then(result => result.rows);
 }
