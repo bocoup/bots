@@ -1,22 +1,13 @@
 import {createCommand} from 'chatter';
 
-// Sub-commands.
-import findCommand from './expertise/find';
-import {forCommand, meCommand} from './expertise/for';
-import listCommand from './expertise/list';
-import scalesCommand from './expertise/scales';
-import statsCommand from './expertise/stats';
-import updateCommand from './expertise/update';
-
 export default createCommand({
   name: 'expertise',
-  description: 'Show your expertise.',
-}, [
-  findCommand,
-  forCommand,
-  meCommand,
-  listCommand,
-  scalesCommand,
-  statsCommand,
-  updateCommand,
-]);
+  description: 'Expertise functionality has moved into @skillsbot.',
+}, (message, {bot}) => {
+  const {id, name} = bot.getUser('skillsbot') || {};
+  const command = cmd => `\`/dm @${name} ${cmd}\``;
+  return [
+    `Expertise functionality has moved into <@${id}>.`,
+    `Say ${command('help')} for more information.`,
+  ];
+});
