@@ -14,7 +14,7 @@ const currency = new Intl.NumberFormat('en-US', {
 });
 
 const targets = {
-  2016: [2500000, 2500000, 2500000, 2500000],
+  2016: [2500000, 2500000, 1000000, 1000000],
 };
 
 // todo add a sync for this to the integrations repo
