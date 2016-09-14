@@ -1,6 +1,7 @@
 import Scheduler from '../lib/scheduler';
 import {generate, prettyDate} from './lib/digest';
 import {query} from '../lib/db';
+import reminder from './lib/reminder';
 import email from '../lib/email';
 
 const scheduler = new Scheduler();
@@ -17,3 +18,5 @@ scheduler.add('0 7 * * 1', function(bot) {
     });
   });
 });
+
+scheduler.add('00 30 11 * * 1-5', reminder);
