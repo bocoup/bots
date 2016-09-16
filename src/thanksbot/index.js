@@ -30,6 +30,12 @@ const bot = createSlackBot({
         leaveMeAloneHandler,
         comeBackHandler,
         thanksHandler,
+        function () {
+          return [
+            'Please begin your message with the word `thanks`.',
+            'Also, I now have a help system! Type `help` for more information!'
+          ]
+        }
       ]);
     }
   },
