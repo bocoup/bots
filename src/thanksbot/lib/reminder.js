@@ -27,7 +27,7 @@ const messages = [
   `@wilto says, "You could thank a Bocouper, _or_ I could take your computer and do it for you. But you ain’t getting it back after."`,
   `@wilto says, "Hey, fun fact: the ASL sign for thanks is http://wil.to/thanks.gif. Also, second fun fact: Thanksbot is right here. Just sayin’."`,
   {
-    toString: function () {
+    toString: () => {
       const nickNames = [
         `Ol’ Thanksy McTouchdown`,
         `Original Thankah AKA Tha Crowd Pleasah`,
@@ -38,10 +38,10 @@ const messages = [
         `Professor Grazie Saltalamacchia`,
         `Takk Meansthanksinnorwegianswedishanddanish`,
       ];
-      const name = nickNames[Math.floor(Math.random()*nickNames.length)];
+      const name = nickNames[Math.floor(Math.random() * nickNames.length)];
       return `@wilto says, "'${name},' they used to call me—and if you send something to Thanksbot today, well, I’ll hand this title over to you."`;
-    }
-  }
+    },
+  },
 ];
 
 export default function(bot) {
@@ -58,7 +58,7 @@ export default function(bot) {
     }
     // select a random message to send
     const message = [
-      messages[(Math.floor(Math.random() * messages.length))].toString()
+      messages[(Math.floor(Math.random() * messages.length))].toString(),
     ];
     // find the direct message conversation with this user
     const dm = dataStore.getDMByName(slack);
