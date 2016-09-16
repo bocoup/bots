@@ -3,9 +3,10 @@ import {createSlackBot, createCommand} from 'chatter';
 import config from '../../config';
 import jobs from './jobs';
 
-import leaveMeAloneHandler from './handlers/leave_me_alone';
-import comeBackHandler from './handlers/come_back';
-import thanksHandler from './handlers/thanks';
+import leaveMeAloneCommand from './commands/leave_me_alone';
+import comeBackCommand from './commands/come_back';
+import recordCommand from './commands/record';
+import helperCommand from './commands/helper';
 
 const bot = createSlackBot({
   name: 'Thanksbot',
@@ -27,15 +28,10 @@ const bot = createSlackBot({
         icon: 'https://static.bocoup.com/pombot/tomato-512x512.png',
         description: `This bot records thanks and shares them with the coop every Monday.`,
       }, [
-        leaveMeAloneHandler,
-        comeBackHandler,
-        thanksHandler,
-        function () {
-          return [
-            'Please begin your message with the word `thanks`.',
-            'Also, I now have a help system! Type `help` for more information!'
-          ]
-        }
+        leaveMeAloneCommand,
+        comeBackCommand,
+        recordCommand,
+        helperCommand,
       ]);
     }
   },
