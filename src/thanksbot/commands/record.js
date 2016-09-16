@@ -4,7 +4,7 @@ import {query} from '../../lib/db';
 export default createCommand({
   name: 'record',
   description: 'Leave a message in the weekly thanksbot digest.',
-  usage: 'record [message]',
+  usage: '[message]',
 }, (message, {bot, user}) => {
   if (!message) {
     return `What message would you like to record?`;
