@@ -1,5 +1,5 @@
 import {RtmClient, WebClient, MemoryDataStore} from '@slack/client';
-import {createSlackBot} from 'chatter';
+import {createSlackBot, createCommand} from 'chatter';
 import config from '../../config';
 import jobs from './jobs';
 
@@ -21,13 +21,16 @@ const bot = createSlackBot({
     };
   },
   createMessageHandler(id, {channel}) {
-    // Direct message
     if (channel.is_im) {
-      return [
+      return createCommand({
+        isParent: true,
+        icon: 'https://static.bocoup.com/pombot/tomato-512x512.png',
+        description: `This bot records thanks and shares them with the coop every Monday.`,
+      }, [
         leaveMeAloneHandler,
         comeBackHandler,
         thanksHandler,
-      ];
+      ]);
     }
   },
 });

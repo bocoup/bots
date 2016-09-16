@@ -1,13 +1,11 @@
-/*
- * A command to disable thanksbot reminders.
- */
+import {createCommand} from 'chatter';
 import {query} from '../../lib/db';
 
-export default (message, {user, bot, slack}) => {
-  if (message === 'leave me alone') {
-    return query('thanks_reminder_mute', user.name).return(
-      'Okay. If you change your mind, just send `/dm thanksbot come back`'
-    );
-  }
-  return false;
-};
+export default createCommand({
+  name: 'leave me alone',
+  description: 'Turn off randomized daily reminders.',
+}, (message, {user}) => {
+  return query('thanks_reminder_mute', user.name).return(
+    'Okay. If you change your mind, just send `/dm thanksbot come back`'
+  );
+});
