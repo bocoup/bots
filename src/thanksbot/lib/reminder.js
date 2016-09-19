@@ -14,7 +14,6 @@ const messages = [
   `@jess asks, "Did someone help you out on a project yesterday? Want to thank them?"`,
   `@clairerocks says, "Hey! Has anyone made your day/week/month better? Thank them!"`,
   `@leo says, "Today is not Thanksgiving day, but you can still thank someone today and it would be amazing!"`,
-  `@boazsender says, "You're an entitled piece of shit if you don't think you have something to be thankful for today."`,
   `@gnarf says, "We've come a long, long way together, though the hard times and the blues. https://youtu.be/ruAi4VBoBSM"`,
   `@vlandham says, "Be thankful for you being you, right here and now."`,
   `@z says, "To avoid becoming a human shaped Jade statue, doctors recommend that you thank someone every day."`,
@@ -42,6 +41,8 @@ const messages = [
       return `@wilto says, "'${name},' they used to call me—and if you send something to Thanksbot today, well, I’ll hand this title over to you."`;
     },
   },
+  `@lorin says, "Every day, dozens of Bocoupers go unthanked. They sit at their keyboards, hardworking and unappreciated. For just 2 minutes' worth of effort, YOU can bring a smile to their faces. Use Thanksbot. Change a life."`,
+  `@lorin says, "I PITY THE FOOL WHO DOESN'T USE THANKSBOT"`,
 ];
 
 export default function(bot) {
