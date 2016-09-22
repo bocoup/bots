@@ -48,7 +48,7 @@ const messages = [
 export default function(bot) {
   const dataStore = bot.slack.rtmClient.dataStore;
   // find eligible bocoupers
-  query('alertable_bocoupers').mapSeries(({slack}) => {
+  return query('alertable_bocoupers').mapSeries(({slack}) => {
     // each person has a 10% chance of being alerted
     const selected = Math.random() <= 0.10;
     // look up the user in the slack realtime data store
@@ -70,7 +70,10 @@ export default function(bot) {
     }
     // give folks the opportunity to opt out of these reminders
     message.push('> To stop these reminders, send `/dm thanksbot leave me alone`');
-    // send away!
-    return bot.postMessage(dm.id || user.id, message).delay(2000);
+    // log the last time we sent this so we can prevent sending too often
+    return query('record_thanks_reminder', slack).then(() => {
+      // send away!
+      return bot.postMessage(dm.id || user.id, message);
+    }).delay(2000);
   });
 }
