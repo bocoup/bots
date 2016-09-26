@@ -43,6 +43,7 @@ const messages = [
   },
   `@lorin says, "Every day, dozens of Bocoupers go unthanked. They sit at their keyboards, hardworking and unappreciated. For just 2 minutes' worth of effort, YOU can bring a smile to their faces. Use Thanksbot. Change a life."`,
   `@lorin says, "I PITY THE FOOL WHO DOESN'T USE THANKSBOT"`,
+  `@bobholt says, "According to Mirriam-Webster, "thankfulness" is next to "thankless." Choose your side.`,
 ];
 
 export default function(bot) {
