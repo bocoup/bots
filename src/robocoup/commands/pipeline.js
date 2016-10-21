@@ -14,7 +14,7 @@ const currency = new Intl.NumberFormat('en-US', {
 });
 
 const targets = {
-  2016: [2500000, 2500000, 1000000, 1000000],
+  2016: [2500000, 2500000, 1000000, 990000],
 };
 
 // todo add a sync for this to the integrations repo
@@ -34,7 +34,7 @@ export default createCommand({
 }, () => {
   return query('sales_pipeline').then(metrics => {
     const year = moment().format('YYYY');
-    const quarter = moment().format('Q');
+    const quarter = parseInt(moment().format('Q')) - 1;
     const target = targets[year][quarter];
     const actual = R.sum(R.map(Number)(R.pluck('value')(metrics)));
     const differential = Math.round(actual / target * 100);
