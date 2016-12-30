@@ -5,6 +5,7 @@ import config from '../../config';
 
 import expertiseCommand from './commands/expertise';
 import outCommand from './commands/out';
+import inCommand from './commands/in';
 import perchCommand from './commands/perch';
 import pipelineCommand from './commands/pipeline';
 import statusCommand from './commands/status';
@@ -36,6 +37,7 @@ const bot = createSlackBot({
           description: `Dead or alive, you're coming with me.`,
         }, [
           outCommand,
+          inCommand,
           perchCommand,
           pipelineCommand,
           statusCommand,
