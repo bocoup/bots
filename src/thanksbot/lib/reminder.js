@@ -44,6 +44,7 @@ const messages = [
   `@lorin says, "Every day, dozens of Bocoupers go unthanked. They sit at their keyboards, hardworking and unappreciated. For just 2 minutes' worth of effort, YOU can bring a smile to their faces. Use Thanksbot. Change a life."`,
   `@lorin says, "I PITY THE FOOL WHO DOESN'T USE THANKSBOT"`,
   `@bobholt says, "According to Mirriam-Webster, "thankfulness" is next to "thankless." Choose your side.`,
+  `@tkellen shares, "Try to learn to breathe deeply, really to taste food when you eat, and when you sleep really to sleep. Try as much as possible to be wholly alive with all your might, and when you laugh, laugh like hell. And when you get angry, get good and angry. Try to be alive. You will be dead soon enough." — Ernest Hemingway`,
 ];
 
 export default function(bot) {
