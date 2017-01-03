@@ -34,6 +34,12 @@ export default createCommand({
   name: 'perch',
   description: 'Show information about perch.',
 }, (str, {user}) => {
+  return [
+    'This report is temporarily disabled pending updates to support',
+    'our 2017 year plans. For more information, see the following:',
+    'https://github.com/bocoup/bocoup-meta/issues/291.'
+  ];
+  /*
   return Promise.all([
     getPerching(),
     getMetricText(user.name),
@@ -45,4 +51,5 @@ export default createCommand({
     `> *Bocoupers on Perch Today:*`,
     perchingResponse.length ? perchingResponse : '> none',
   ]);
+  */
 });
