@@ -9,8 +9,8 @@ export default createCommand({
   return query('time_projects')
     .then(projects => `Projects:
 ${projects
-  .map(({ short_code, project, org }) => `*${short_code}*: ${org}: ${project}`)
+  .map(({code, project, org}) => `*${code}*: ${org}: ${project}`)
   .join('\n')
 }`
-    )
+    );
 });

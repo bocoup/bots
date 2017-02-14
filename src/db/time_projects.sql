@@ -1,5 +1,5 @@
 SELECT
-  short_code,
+  short_code as code,
   organization.name as org,
   project.name as project
 FROM timesheet_project
