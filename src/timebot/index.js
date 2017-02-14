@@ -1,7 +1,7 @@
 import {RtmClient, WebClient, MemoryDataStore} from '@slack/client';
 import {createSlackBot, createConversation, createCommand} from 'chatter';
 import config from '../../config';
-import * as commands from './commands'
+import * as commands from './commands';
 
 const bot = createSlackBot({
   name: 'Time Bot',
@@ -28,10 +28,10 @@ const bot = createSlackBot({
     ]);
 
     if (channel.is_im) {
-      return root
+      return root;
     }
 
-    console.log(channel)
+    console.log(channel);
 
   },
 });
