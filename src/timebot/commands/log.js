@@ -35,7 +35,6 @@ export default createCommand({
 
       bot.sendResponse({channel}, logMessage);
 
-      return `This log entry has been stored.
-    ${logMessage}`;
+      return `This log entry has been stored.\n${logMessage}`;
     });
 });
