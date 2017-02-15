@@ -12,12 +12,12 @@
 
 - name: copy existing npm modules
   command: cp -R {{site_path}}/node_modules {{clone_path}}
-  when: package_diff.rc == 0
+  when: "{{package_diff.rc == 0}}"
 
 - name: install npm modules
   npm: path="{{clone_path}}"
-  when: package_diff.rc != 0
+  when: "{{package_diff.rc != 0}}"
 
 - name: generate build info file
   template: src=build_info.txt dest={{clone_path}}/{{build_info_path}}
-  when: build_info_path is defined
+  when: "{{build_info_path is defined}}"

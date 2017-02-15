@@ -4,7 +4,7 @@
 
 - name: ensure swapfile exists
   command: fallocate -l {{swap_file_size}} /swap
-  when: not swap_file_check.stat.exists
+  when: "{{not swap_file_check.stat.exists}}"
   args:
     creates: "{{swap_file_path}}"
 
@@ -13,7 +13,7 @@
 
 - name: ensure swapfile is formatted
   command: mkswap {{swap_file_path}}
-  when: not swap_file_check.stat.exists
+  when: "{{not swap_file_check.stat.exists}}"
 
 # the quotes around integers here can be removed when this is resolved
 # https://github.com/ansible/ansible-modules-core/issues/1861

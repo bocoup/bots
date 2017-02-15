@@ -12,4 +12,4 @@
   service:
     name: bots
     state: restarted
-  when: site_path_check.stat.exists
+  when: "{{site_path_check.stat.exists}}"

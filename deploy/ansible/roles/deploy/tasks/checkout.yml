@@ -23,15 +23,15 @@
   register: sha_dir
 
 - include: build.yml
-  when: force or not sha_dir.stat.exists
+  when: "{{force or not sha_dir.stat.exists}}"
 
 - name: delete pre-existing sha-named directory
   file: path={{base_path}}/{{sha.stdout}} state=absent
-  when: force and sha_dir.stat.exists
+  when: "{{force and sha_dir.stat.exists}}"
 
 - name: move cloned repo to sha-named directory
   command: mv {{clone_path}} {{base_path}}/{{sha.stdout}}
-  when: force or not sha_dir.stat.exists
+  when: "{{force or not sha_dir.stat.exists}}"
 
 - name: ensure just-created temp directory is removed
   file: path={{clone_path}} state=absent
