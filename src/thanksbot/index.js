@@ -25,7 +25,7 @@ const bot = createSlackBot({
     if (channel.is_im) {
       return createCommand({
         isParent: true,
-        icon: 'https://static.bocoup.com/pombot/tomato-512x512.png',
+        icon: 'https://avatars.slack-edge.com/2016-01-07/17962262403_c150282ec5ef067ea5cc_512.png',
         description: `This bot records thanks and shares them with the coop every Monday.`,
       }, [
         leaveMeAloneCommand,

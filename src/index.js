@@ -9,3 +9,8 @@ import thanksbot from './thanksbot';
 if (config.tokens.thanksbot) {
   thanksbot.login();
 }
+
+import timebot from './timebot';
+if (config.tokens.timebot) {
+  timebot.login();
+}
