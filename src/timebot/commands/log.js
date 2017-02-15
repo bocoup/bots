@@ -27,7 +27,7 @@ export default createCommand({
         return `Error finding *${project}* as a project (or your slack username), try saying *projects* for a list.`;
       }
 
-      const {id, duration} = inserted
+      const {duration} = inserted;
       const formatted = moment.duration(duration).format('h[h]mm[m]');
       const logMessage = `:timer_clock:${formatted} ${user.name} [${project}] ${description}`;
       const channelName = 'continued-access';
