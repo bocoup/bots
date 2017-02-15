@@ -30,9 +30,6 @@ const bot = createSlackBot({
     if (channel.is_im) {
       return root;
     }
-
-    console.log(channel);
-
   },
 });
 

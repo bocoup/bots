@@ -2,6 +2,6 @@ SELECT
   short_code as code,
   organization.name as org,
   project.name as project
-FROM timesheet_project
-  LEFT JOIN project on timesheet_project.project_id = project.id
+FROM project
   LEFT JOIN organization on project.organization_id = organization.id
+  WHERE short_code IS NOT NULL
