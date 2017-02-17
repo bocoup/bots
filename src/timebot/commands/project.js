@@ -3,7 +3,7 @@ import {query} from '../../lib/db';
 import {createCommand} from 'chatter';
 
 const duration = time =>
-  `${Number(time)} hours`;
+  `${Number(time).toFixed(2)}h`;
 
 export default createCommand({
   name: 'project',
@@ -18,8 +18,8 @@ export default createCommand({
           hours,
           notes,
         }) =>
-          `:timer_clock: [${code}] ${week} ${duration(hours)}\n> ${notes}`
+          `:timer_clock: [${code}] ${week} ${duration(hours)} \n> ${notes}`
       )
       .join('\n')
-    )
+    );
 });

@@ -11,9 +11,9 @@ export default createCommand({
   return query('time_show_log', 10)
     .then(logs =>
       logs.map(
-        ({ project, employee, duration, day, notes }) =>
+        ({project, employee, duration, day, notes}) =>
           `${moment(day).format('MM-DD')}:timer_clock:${employee} ${moment.duration(duration).format('h[h]mm[m]')} [${project}] ${notes}`
       )
       .join('\n')
-    )
+    );
 });

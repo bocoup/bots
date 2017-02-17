@@ -1,5 +1,3 @@
-import moment from 'moment';
-import 'moment-duration-format';
 import {query} from '../../lib/db';
 
 import {createCommand} from 'chatter';
@@ -21,7 +19,7 @@ export default createCommand({
           total_hours: total,
           avg_hours: avg,
           current_hours: current,
-          behind: behind
+          behind,
         }) =>
           `${duration(current)} [${code}]: ${behind > 0 ?
             `:exclamation: ${duration(behind)} behind` :
@@ -31,5 +29,5 @@ export default createCommand({
           } the average of ${duration(avg)} per week.`
       )
       .join('\n')
-    )
+    );
 });
