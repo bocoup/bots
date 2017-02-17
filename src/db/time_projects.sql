@@ -4,4 +4,5 @@ SELECT
   project.name as project
 FROM project
   LEFT JOIN organization on project.organization_id = organization.id
-  WHERE short_code IS NOT NULL
+WHERE short_code IS NOT NULL
+ORDER BY code
