@@ -8,7 +8,7 @@ export default createCommand({
   name: 'last',
   description: 'Show the last 10 entries in the timesheet',
 }, (msg, {bot, user}) => {
-  return query('show_log', 10)
+  return query('time_show_log', 10)
     .then(logs =>
       logs.map(
         ({ project, employee, duration, day, notes }) =>
