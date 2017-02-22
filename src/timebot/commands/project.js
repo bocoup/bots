@@ -9,6 +9,9 @@ export default createCommand({
   name: 'project',
   description: 'Show the weekly stats from the timesheet for the project',
 }, (msg, {bot, user}) => {
+  if (!msg) {
+    return 'You must specify a project, try *projects* to see a list';
+  }
   return query('time_history', msg)
     .then(logs =>
       logs.map(
