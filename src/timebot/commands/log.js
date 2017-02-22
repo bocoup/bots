@@ -21,7 +21,7 @@ export default createCommand({
 \`log 1h 30m proj testing the logs\``;
   }
 
-  return query('insert_log', interval, description, project.toLowerCase(), user.name)
+  return query('time_insert_log', interval, description, project.toLowerCase(), user.name)
     .then(([inserted]) => {
       if (!inserted) {
         return `Error finding *${project}* as a project (or your slack username), try saying *projects* for a list.`;

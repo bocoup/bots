@@ -13,5 +13,5 @@ export function histogramByPercentage(width, percentage) {
   if (percentage > 0 && percentage < 0.05) {
     return HALF + EMPTY.repeat(width - 1);
   }
-  return histogram(width, Math.round(width * percentage));
+  return histogram(width, Math.min(width, Math.max(0, Math.round(width * percentage))));
 }
