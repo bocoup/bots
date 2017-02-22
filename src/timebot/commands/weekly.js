@@ -34,7 +34,7 @@ const printLogLine = ({
   const avg = duration(average);
   const amoj = emoji(target - avg);
   return `\`${cd} [${lbar}\`${mbar}\`${rbar}] ${pct}% c:${cur} t:${tar} a:${avg}\`${amoj}`;
-}
+};
 
 export default createCommand({
   name: 'weekly',
