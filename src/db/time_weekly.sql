@@ -1,7 +1,11 @@
-WITH params as (
+WITH input as (
   SELECT
-    date_trunc('week', current_date) as presentday,
-    date_trunc('week', current_date - interval '12 weeks') as historyday
+    date_trunc('week', current_date + ?::interval) as input_date
+), params as (
+  SELECT
+    input_date as presentday,
+    date_trunc('week', input_date - interval '12 weeks') as historyday
+  FROM input
 ), weekly as (
   SELECT
     project.short_code,
@@ -44,20 +48,24 @@ WITH params as (
     range_end,
     sum(weekly.hours)::decimal(10,2) as total_hours,
     avg(weekly.hours)::decimal(10,2) as avg_hours,
+    COALESCE(project.target_hours_weekly, avg(weekly.hours)::decimal(10,2)) AS target_hours,
     COALESCE(current.hours, 0) as current_hours
   FROM filled_weekly weekly
+    LEFT JOIN project ON weekly.short_code = project.short_code
     LEFT JOIN active_range on weekly.short_code = active_range.short_code
     LEFT JOIN current on weekly.short_code = current.short_code
   GROUP BY weekly.short_code, active_range.range_end, active_range.range_start,
-    current.hours
+    current.hours, project.target_hours_weekly
 )
 SELECT
   short_code,
-  date(range_start) as first_week,
-  date(range_end) as last_week,
+  to_char(range_start, 'YYYY-MM-DD') as first_week,
+  to_char(range_end, 'YYYY-MM-DD') as last_week,
   total_hours,
   avg_hours,
+  target_hours,
   current_hours,
-  avg_hours - current_hours as behind
+  current_hours / target_hours as ratio,
+  target_hours - current_hours as behind
 FROM summary
   ORDER BY short_code
