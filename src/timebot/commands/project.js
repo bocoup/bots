@@ -14,6 +14,7 @@ export default createCommand({
   }
   return query('time_history', msg)
     .then(logs =>
+      '*Project "invoice" format*\n' +
       logs.map(
         ({
           short_code: code,
