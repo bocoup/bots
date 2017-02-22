@@ -59,8 +59,8 @@ WITH input as (
 )
 SELECT
   short_code,
-  to_char(range_start, 'YYYY-MM-DD') as first_week,
-  to_char(range_end, 'YYYY-MM-DD') as last_week,
+  date(range_start)::text as first_week,
+  date(range_end)::text as last_week,
   total_hours,
   avg_hours,
   target_hours,

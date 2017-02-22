@@ -1,8 +1,8 @@
 SELECT
   project.short_code,
-  to_char(date_trunc('week', timesheet.day), 'YYYY-MM-DD') as week,
+  date(date_trunc('week', timesheet.day))::text as week,
   extract(epoch from sum(timesheet.duration)) / 3600 as hours,
-  string_agg(timesheet.notes, '; '::text) as notes
+  string_agg(timesheet.notes, '; ') as notes
 FROM timesheet
   LEFT JOIN project ON timesheet.project_id = project.id
 WHERE project.short_code = ?

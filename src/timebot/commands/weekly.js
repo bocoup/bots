@@ -14,6 +14,28 @@ const emoji = val =>
       ':white_check_mark:' :
       ':heavy_check_mark:';
 
+const printLogLine = ({
+  short_code: code,
+  total_hours: total,
+  avg_hours: average,
+  current_hours: current,
+  target_hours: target,
+  behind,
+  ratio,
+}) => {
+  // use short variables to make the template be one line
+  const cd = `${code}${' '.repeat(10 - code.length)}`;
+  const lbar = histogramByPercentage(10, ratio);
+  const mbar = emoji(behind);
+  const rbar = histogramByPercentage(5, ratio - 1);
+  const pct = `  ${Math.round(ratio * 100)}`.slice(-3);
+  const cur = duration(current);
+  const tar = duration(target);
+  const avg = duration(average);
+  const amoj = emoji(target - avg);
+  return `\`${cd} [${lbar}\`${mbar}\`${rbar}] ${pct}% c:${cur} t:${tar} a:${avg}\`${amoj}`;
+}
+
 export default createCommand({
   name: 'weekly',
   description: 'Show the weekly stats from the timesheet',
@@ -21,20 +43,7 @@ export default createCommand({
   return query('time_weekly', msg || '0 day')
     .then(logs =>
       '*Weekly Report for Hours:*\n' +
-      logs.map(
-        ({
-          short_code: code,
-          // first_week: start,
-          // last_week: end,
-          total_hours: total,
-          avg_hours: avg,
-          current_hours: current,
-          target_hours: target,
-          behind,
-          ratio,
-        }) =>
-          `\`${code}${' '.repeat(10 - code.length)} [${histogramByPercentage(10, ratio)}\`${emoji(behind)}\`${histogramByPercentage(5, ratio - 1)}] ${`  ${Math.round(ratio * 100)}`.slice(-3)}% c:${duration(current)} t:${duration(target)} a:${duration(avg)}\`${emoji(target - avg)}`
-      )
-      .join('\n')
+      logs.map(printLogLine)
+        .join('\n')
     );
 });
