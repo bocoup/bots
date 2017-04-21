@@ -12,7 +12,7 @@ export default createCommand({
   description: 'Create a timelog entry',
 }, (msg, {bot, user}) => {
   const [matched,
-    interval, project, description = 'logged via @timebot',
+    interval, project, description = 'logged via @effortbot',
   ] = msg.match(
     /^((?:[.\d]+\s*\w+\s*)+)\s+(\S+)\s+(.*)$/
   ) || [];
