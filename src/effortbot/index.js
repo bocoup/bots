@@ -9,11 +9,11 @@ const bot = createSlackBot({
   verbose: true,
   getSlack() {
     return {
-      rtmClient: new RtmClient(config.tokens.timebot, {
+      rtmClient: new RtmClient(config.tokens.effortbot, {
         dataStore: new MemoryDataStore(),
         autoReconnect: true,
       }),
-      webClient: new WebClient(config.tokens.timebot),
+      webClient: new WebClient(config.tokens.effortbot),
     };
   },
   createMessageHandler(id, {channel}) {

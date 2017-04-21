@@ -10,7 +10,7 @@ if (config.tokens.thanksbot) {
   thanksbot.login();
 }
 
-import timebot from './timebot';
-if (config.tokens.timebot) {
-  timebot.login();
+import effortbot from './effortbot';
+if (config.tokens.effortbot) {
+  effortbot.login();
 }
