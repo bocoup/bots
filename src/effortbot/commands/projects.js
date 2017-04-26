@@ -4,7 +4,7 @@ import {createCommand} from 'chatter';
 
 export default createCommand({
   name: 'projects',
-  description: 'List all available projects for timesheet',
+  description: 'List all available projects for effortsheet',
 }, () => {
   return query('time_projects')
     .then(projects => `Projects:

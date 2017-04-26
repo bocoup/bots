@@ -18,7 +18,7 @@ export default createCommand({
   ) || [];
   if (!matched) {
     return `Unknown log format.  Try:
-\`log 1h 30m proj testing the logs\``;
+\`log 1 proj testing the logs\``;
   }
 
   return query('time_insert_log', interval, description, project.toLowerCase(), user.name)

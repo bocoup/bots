@@ -7,7 +7,7 @@ const duration = time =>
 
 export default createCommand({
   name: 'project',
-  description: 'Show the weekly stats from the timesheet for the project',
+  description: 'Show the weekly stats from the effortsheet for the project',
 }, (msg, {bot, user}) => {
   if (!msg) {
     return 'You must specify a project, try *projects* to see a list';

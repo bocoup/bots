@@ -1,1 +1,1 @@
-DELETE FROM timesheet WHERE id = ?
+DELETE FROM effortsheet WHERE id = ?

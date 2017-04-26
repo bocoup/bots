@@ -16,17 +16,17 @@ const emoji = val =>
 
 const printLogLine = ({
   short_code: code,
-  total_hours: total,
-  avg_hours: average,
-  current_hours: current,
-  target_hours: target,
-  behind,
+  total_points: total,
+  avg_points: average,
+  current_points: current,
+  target_points: target,
+  gap,
   ratio,
 }) => {
   // use short variables to make the template be one line
   const cd = `${code}${' '.repeat(10 - code.length)}`;
   const lbar = histogramByPercentage(10, ratio);
-  const mbar = emoji(behind);
+  const mbar = emoji(ggap);
   const rbar = histogramByPercentage(5, ratio - 1);
   const pct = `  ${Math.round(ratio * 100)}`.slice(-3);
   const cur = duration(current);
@@ -38,7 +38,7 @@ const printLogLine = ({
 
 export default createCommand({
   name: 'weekly',
-  description: 'Show the weekly stats from the timesheet',
+  description: 'Show the weekly stats from the effortsheet',
 }, (msg, {bot, user}) => {
   return query('time_weekly', msg || '0 day')
     .then(logs =>
