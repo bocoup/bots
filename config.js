@@ -5,8 +5,7 @@ require('dotenv').config();
 module.exports = {
   runJobs: process.env.RUN_JOBS,
   tokens: {
-    robocoup: process.env.TOKEN_ROBOCOUP,
-    thanksbot: process.env.TOKEN_THANKSBOT,
+    robocoup: process.env.TOKEN_ROBOCOUP
   },
   email: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
