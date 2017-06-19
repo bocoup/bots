@@ -13,6 +13,7 @@ WITH input as (
     extract(epoch from sum(timesheet.duration)) / 3600 as hours
   FROM timesheet
     LEFT JOIN project ON timesheet.project_id = project.id
+  WHERE project.completed IS false
   GROUP BY 1, 2
   ORDER BY startday DESC,
     project.short_code
