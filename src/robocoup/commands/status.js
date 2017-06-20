@@ -28,8 +28,8 @@ export default createCommand({
       `> *Name:* ${status.bocouper}`,
       `> *Check In Person:* ${status.check_in_person}`,
       `> *Project:* ${status.project || 'n/a'}`,
-      `> *Initiative:* ${status.initiative}`,
-      `> *Utilization Type:* ${status.utilization_type}`,
+      `> *Initiative:* ${status.initiative || 'n/a'}`,
+      `> *Utilization Type:* ${status.utilization_type || 'n/a'}`,
       `> *Leave Type:* ${status.leave_type || 'n/a'}`,
     ];
   });

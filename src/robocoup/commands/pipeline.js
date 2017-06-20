@@ -15,6 +15,7 @@ const currency = new Intl.NumberFormat('en-US', {
 
 const targets = {
   2016: [2500000, 2500000, 1000000, 990000],
+  2017: []
 };
 
 // todo add a sync for this to the integrations repo
@@ -35,7 +36,16 @@ export default createCommand({
   return query('sales_pipeline').then(metrics => {
     const year = moment().format('YYYY');
     const quarter = parseInt(moment().format('Q')) - 1;
-    const target = targets[year][quarter];
+    const target = targets[year] && targets[year][quarter];
+
+    if (!target) {
+      return [
+        'Our target for the current year and quarter has not yet been',
+        'entered into Robocoup. Please make an issue so we can resolve this:',
+        'http://github.com/bocoup/bots'
+      ];
+    }
+
     const actual = R.sum(R.map(Number)(R.pluck('value')(metrics)));
     const differential = Math.round(actual / target * 100);
     const createdAt = moment.unix(metrics[0].created_at).tz('America/New_York');

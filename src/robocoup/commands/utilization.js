@@ -49,6 +49,12 @@ export default createCommand({
   description: 'Show information about our utilization rate.',
 }, (message, meta) => {
 
+  return [
+    'This report is temporarily disabled pending updates to support',
+    'our 2017 year plans. For more information, see the following:',
+    'https://github.com/bocoup/bocoup-meta/issues/291.'
+  ];
+  /*
   const user = meta.user.name;
 
   const qCompany = query('utilization_metric').then().get(0);
@@ -209,5 +215,5 @@ export default createCommand({
       resources,
     ];
   });
-
+*/
 });
