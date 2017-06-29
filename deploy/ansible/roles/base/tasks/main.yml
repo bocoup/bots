@@ -7,10 +7,10 @@
 
 - name: ensure all packages are upgraded safely
   apt: upgrade=safe
-  when: "{{env != 'development'}}"
+  when: env != 'development'
 
 - name: add keys to apt
-  apt_key: url={{item}} state=present
+  shell: wget -qO - {{item}} | apt-key add -
   with_items: "{{apt_keys}}"
 
 - name: add ppas to apt
