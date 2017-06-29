@@ -9,8 +9,3 @@ import thanksbot from './thanksbot';
 if (config.tokens.thanksbot) {
   thanksbot.login();
 }
-
-import effortbot from './effortbot';
-if (config.tokens.effortbot) {
-  effortbot.login();
-}
