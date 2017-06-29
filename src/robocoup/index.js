@@ -3,13 +3,8 @@ import {createSlackBot, createConversation, createCommand} from 'chatter';
 import mixinBotHelpers from '../lib/bot-helpers';
 import config from '../../config';
 
-import expertiseCommand from './commands/expertise';
 import outCommand from './commands/out';
 import inCommand from './commands/in';
-import perchCommand from './commands/perch';
-import pipelineCommand from './commands/pipeline';
-import statusCommand from './commands/status';
-import utilizationCommand from './commands/utilization';
 import versionCommand from './commands/version';
 
 const bot = createSlackBot({
@@ -38,12 +33,7 @@ const bot = createSlackBot({
         }, [
           outCommand,
           inCommand,
-          perchCommand,
-          pipelineCommand,
-          statusCommand,
-          utilizationCommand,
           versionCommand,
-          expertiseCommand,
         ]),
       ]);
     }
