@@ -7,7 +7,6 @@ module.exports = {
   tokens: {
     robocoup: process.env.TOKEN_ROBOCOUP,
     thanksbot: process.env.TOKEN_THANKSBOT,
-    effortbot: process.env.TOKEN_EFFORTBOT,
   },
   email: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
