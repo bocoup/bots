@@ -3,8 +3,6 @@ import {createSlackBot, createCommand} from 'chatter';
 import config from '../../config';
 import jobs from './jobs';
 
-import leaveMeAloneCommand from './commands/leave_me_alone';
-import comeBackCommand from './commands/come_back';
 import recordCommand from './commands/record';
 import helperCommand from './commands/helper';
 
@@ -28,8 +26,6 @@ const bot = createSlackBot({
         icon: 'https://avatars.slack-edge.com/2016-01-07/17962262403_c150282ec5ef067ea5cc_512.png',
         description: `This bot records thanks and shares them with the coop every Monday.`,
       }, [
-        leaveMeAloneCommand,
-        comeBackCommand,
         recordCommand,
         helperCommand,
       ]);
