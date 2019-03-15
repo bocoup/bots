@@ -9,7 +9,7 @@ import {createCommand} from 'chatter';
 
 export default createCommand({
   name: "prefs",
-  description: "Communication preferences for Coop"
+  description: "Communication preferences for members of the Coop"
 }, () => {
   const filePath = path.join(__dirname, 'pref-data.json');
   let answer = `Thanks for asking - here are preferences: `;
@@ -23,12 +23,17 @@ export default createCommand({
       names.forEach((name) => {
         answer += `
         ${name}: 
-        Pronouns: ${results[name].pronouns}
+        **Work Hours**
         Start time: ${results[name].work_start_time}
         End time:  ${results[name].work_end_time}
         Exceptions to standard: ${results[name].work_hours_exceptions}
+
+        **Communication**
         Non-urgent communications preferences: ${results[name].comm_preferences.not_urgent}
         Urgent communications preferences: ${results[name].comm_preferences.urgent}
+
+        **Pronouns**
+        Preferred pronouns: ${results[name].pronouns}
         
         ---------------------------------------------------------------
 `;
@@ -36,6 +41,6 @@ export default createCommand({
       resolve(answer);
     });
   }).catch((error) => {
-    reject(`whooooops something went wrong ${error}`);
+    reject(`Whooooops, something went wrong!  ${error}`);
   });
 });
