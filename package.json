@@ -29,7 +29,6 @@
     "db": "export $(<.env) && psql $PGNAME",
     "start": "node -r esm ./src/main.js",
     "start-dev": "nodemon --watch src --exec \"node -r esm ./src/main.js\"",
-    "dev": "cross-env APP_ENV=development ",
     "test": "grunt test"
   },
   "devDependencies": {
