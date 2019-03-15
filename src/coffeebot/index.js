@@ -8,6 +8,7 @@ import config from '../../config';
 // EXPORTS
 let USER_LAST_BREWED = ''
 let TIME_LAST_BREWED = '';
+let IN_CARAFE = false
 
 // An access token (from your Slack app or custom integration - usually xoxb)
 const TOKEN = config.tokens.coffeebot;
@@ -27,6 +28,7 @@ bot.on('message', async (message) => {
         
         brew:       Tell coffeebot that you brewed coffee
         empty:      Tell coffeebot that the coffee pot is empty
+        carafe:     Tell coffeebot that the coffee is in the carafe
         status:     Ask coffeebot if the coffee pot is empty or not
         roulette:   Choose someone to make coffee
     `;
@@ -43,19 +45,33 @@ bot.on('message', async (message) => {
   // STATUS MODE
   if (message.text.includes('status')) {
     if (USER_LAST_BREWED && TIME_LAST_BREWED) {
-      botMessage = `<@${USER_LAST_BREWED}> brewed coffee on <!date^${TIME_LAST_BREWED}^{date} at {time}|${new Date().toLocaleString()}>`;
+      botMessage = `<@${USER_LAST_BREWED}> brewed coffee on <!date^${TIME_LAST_BREWED}^{date} at {time}|${new Date().toLocaleString()}>. The coffee is in the ${ IN_CARAFE ? 'carafe' : 'pot' }!`;
     } else {
       botMessage = 'Someone needs to brew coffee!';
     }
   }
 
+  // Empty mode
   if (message.text.includes('empty')) {
     USER_LAST_BREWED = '';
     TIME_LAST_BREWED = '';
+    IN_CARAFE = false;
     botMessage = 'The coffee pot is empty! Please make more coffee. Or else.';
   }
 
 
+  // Carafe mode
+  if (message.text.includes('carafe')) {
+    if ( USER_LAST_BREWED && TIME_LAST_BREWED ) {
+      IN_CARAFE = true;
+      botMessage = 'Coffee is in the carafe!';
+    }
+    else {
+      botMessage = 'Someone needs to brew coffee!';
+    }
+  }
+
+  // Roulette mode
   if (message.text.includes('roulette')) {
     if (message.channel.startsWith('C')){
 
