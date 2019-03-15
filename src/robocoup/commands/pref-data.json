@@ -8,5 +8,35 @@
       "urgent": "please slack me or tap me on the shoulder"
     },
     "pronouns": "she/her/they/them"
+  },
+  "marie": {
+    "work_start_time": "10am EST",
+    "work_end_time": "6pm EST",
+    "work_hours_exceptions": "tuesdays leave early for class @ 4:30pm",
+    "comm_preferences": {
+      "not_urgent": "email (24h turnaround), slack (same day)",
+      "urgent": "please fix it until it's not urgent and then slack me"
+    },
+    "pronouns": "she/her/they/them"
+  },
+  "rick": {
+    "work_start_time": "9am EST",
+    "work_end_time": "5pm EST",
+    "work_hours_exceptions": "tuesdays leave early for class @ 4:30pm",
+    "comm_preferences": {
+      "not_urgent": "email",
+      "urgent": "unless your name is Taco, it's not urgent"
+    },
+    "pronouns": "he/his"
+  },
+  "corey": {
+    "work_start_time": "10am EST",
+    "work_end_time": "6pm EST",
+    "work_hours_exceptions": "sometimes hopper needs attention more than you",
+    "comm_preferences": {
+      "not_urgent": "please commit your request to my personal repo. requests with typos, errors or poor memory-management will be ignored.",
+      "urgent": "GO AWAY"
+    },
+    "pronouns": "they/them"
   }
 }
