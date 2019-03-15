@@ -1,0 +1,12 @@
+{
+  "amal": {
+    "work_start_time": "10am EST",
+    "work_end_time": "6pm EST",
+    "work_hours_exceptions": "tuesdays leave early for class @ 4:30pm",
+    "comm_preferences": {
+      "not_urgent": "email",
+      "urgent": "please slack me or tap me on the shoulder"
+    },
+    "pronouns": "she/her/they/them"
+  }
+}
