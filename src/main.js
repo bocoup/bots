@@ -9,3 +9,8 @@ import thanksbot from './thanksbot';
 if (config.tokens.thanksbot) {
   thanksbot.login();
 }
+
+import infobert from './infobert';
+if (config.tokens.infobert) {
+  infobert.login();
+}
