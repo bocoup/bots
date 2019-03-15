@@ -1,11 +1,4 @@
-import config from '../config';
+// using esm here to polyfill imports
+require = require("esm")(module/*, options*/);
 
-import robocoup from './robocoup';
-if (config.tokens.robocoup) {
-  robocoup.login();
-}
-
-import thanksbot from './thanksbot';
-if (config.tokens.thanksbot) {
-  thanksbot.login();
-}
+module.exports = require("./main.js")
