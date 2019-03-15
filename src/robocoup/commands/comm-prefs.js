@@ -33,8 +33,8 @@ export default createCommand({
         ---------------------------------------------------------------
 `;
       });
-  });
-    resolve(answer);
+      resolve(answer);
+    });
   }).catch((error) => {
     reject(`whooooops something went wrong ${error}`);
   });
