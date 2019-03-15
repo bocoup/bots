@@ -1,0 +1,1 @@
+SELECT * FROM comm_prefs;

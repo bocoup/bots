@@ -6,6 +6,7 @@ import config from '../../config';
 import outCommand from './commands/out';
 import inCommand from './commands/in';
 import versionCommand from './commands/version';
+import commPrefs from './commands/comm-prefs';
 
 const bot = createSlackBot({
   name: 'Robocoup Mk. II',
@@ -34,6 +35,7 @@ const bot = createSlackBot({
           outCommand,
           inCommand,
           versionCommand,
+          commPrefs
         ]),
       ]);
     }
