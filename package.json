@@ -28,7 +28,8 @@
     "get-secrets": "ssh nest.bocoup.com cat /mnt/secrets/{ses,bots/bots-dev,rds-bocoup-db/{connection,db/bocoup-staging}} > .env",
     "db": "export $(<.env) && psql $PGNAME",
     "start": "node -r esm ./src/main.js",
-    "start-dev": "grunt",
+    "start-dev": "nodemon --watch src --exec \"node -r esm ./src/main.js\"",
+    "dev": "cross-env APP_ENV=development ",
     "test": "grunt test"
   },
   "devDependencies": {
@@ -38,6 +39,7 @@
     "grunt-contrib-watch": "^0.6.1",
     "grunt-eslint": "^17.3.1",
     "grunt-mocha-test": "^0.12.7",
-    "mocha": "^2.3.4"
+    "mocha": "^2.3.4",
+    "nodemon": "^1.18.10"
   }
 }
