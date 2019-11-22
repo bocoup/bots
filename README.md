@@ -1,6 +1,8 @@
 # bots
 > our slack bots
 
+**Notice:** This service was taken offline on 2019-08-27.
+
 ### Development
 1. Clone repo
 2. `npm install`
