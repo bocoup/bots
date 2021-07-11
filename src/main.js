@@ -9,3 +9,8 @@ import thanksbot from './thanksbot';
 if (config.tokens.thanksbot) {
   thanksbot.login();
 }
+
+import coffeebot from './coffeebot';
+if (config.tokens.coffeebot) {
+  coffeebot.start();
+}
